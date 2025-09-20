@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Productivity Tracker</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root{
+      --bg:#e9f1ff;
+      --card:#ffffff;
+      --accent:#2b7cff;
+      --accent-dark:#1a5ecf;
+      --muted:#6b7d99;
+      --success:#28a745;
+      --danger:#e04f5f;
+      --glass: rgba(255,255,255,0.6);
+      --shadow: 0 6px 18px rgba(34,60,80,0.08);
+      --max-width:1100px;
+    }
+    /* Dark Mode Toggle */
+    .dark { --bg:#0b1220; --card: #08101a; --accent:#3b82f6; --accent-dark:#2563eb; --muted:#9aa9bf; color:#e6eef8; }
+    html,body{height:100%;margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;color:#07203b;background:linear-gradient(180deg,var(--bg),#dfeeff); }
+    .app{max-width:var(--max-width);margin:0 auto;padding:1rem 1rem 90px;box-sizing:border-box;}
+    header.main-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 0}
+    header .title{display:flex;gap:0.75rem;align-items:center}
+    header h1{margin:0;font-size:1.1rem;color:var(--accent-dark)}
+    .card{background:var(--card);border-radius:12px;box-shadow:var(--shadow);padding:1rem;margin-bottom:1rem}
+    .row{display:flex;gap:1rem;align-items:center}
+    .col{flex:1}
+    .btn{background:linear-gradient(90deg,var(--accent),var(--accent-dark));color:white;padding:.6rem .9rem;border-radius:10px;border:none;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:.5rem}
+    .btn.ghost{background:transparent;color:var(--accent-dark);border:1px solid rgba(0,0,0,0.06)}
+    .small{padding:.35rem .6rem;font-size:.9rem;border-radius:8px}
+    input, select, textarea{width:100%;padding:.6rem;border-radius:8px;border:1px solid rgba(10,20,40,0.06);box-sizing:border-box;background:transparent}
+    .muted{color:var(--muted);font-size:.9rem}
+    /* Sections */
+    .section{display:none;opacity:0;transform:translateY(6px);transition:all .25s ease-in-out;padding-bottom:1rem}
+    .section.active{display:block;opacity:1;transform:none}
+    /* Bottom nav */
+    .bottom-nav{position:fixed;left:0;right:0;bottom:14px;display:flex;justify-content:center;pointer-events:none}
+    .bottom-nav-inner{width:100%;max-width:var(--max-width);background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.75));border-radius:18px;box-shadow:0 12px 30px rgba(10,20,40,0.12);display:flex;justify-content:space-around;padding:.6rem;pointer-events:auto}
+    .nav-item{flex:1;text-align:center;padding:.45rem .35rem;border-radius:12px;color:var(--muted);cursor:pointer}
+    .nav-item.active{background:linear-gradient(90deg, rgba(43,124,255,0.12), rgba(26,94,207,0.07));color:var(--accent-dark);font-weight:700}
+    .nav-item i{display:block;font-size:1.2rem;margin-bottom:4px}
+    /* Tasks */
+    .tasks-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    .task-item{display:flex;gap:.75rem;padding:.6rem;border-radius:10px;align-items:flex-start;border:1px solid rgba(10,20,40,0.04);transition:all .18s}
+    .task-item:hover{transform:translateY(-4px)}
+    .task-completed{opacity:.55;text-decoration:line-through;background:linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.01))}
+    .task-checkbox{transform:scale(1.15);margin-top:3px}
+    .task-meta{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.5rem;font-size:.85rem;color:var(--muted)}
+    .priority-low{color:#2dbe60}
+    .priority-medium{color:#ffb020}
+    .priority-high{color:var(--danger)}
+    .task-actions{margin-left:auto;display:flex;gap:.4rem}
+    /* Dashboard summary */
+    .summary-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+    .summary-card{padding:1rem;border-radius:12px;background:linear-gradient(180deg,#fff,#f6fbff);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:.5rem}
+    .chart-wrap{background:var(--card);border-radius:12px;padding:1rem;box-shadow:var(--shadow);margin-bottom:1rem}
+    /* Analytics filters */
+    .filters{display:flex;gap:.5rem;flex-wrap:wrap}
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;background:#0c1726;color:white;padding:.6rem 1rem;border-radius:8px;display:none;z-index:9999}
+    /* Responsive */
+    @media(max-width:900px){
+      .tasks-grid{grid-template-columns:1fr}
+      .summary-cards{grid-template-columns:repeat(2,1fr)}
+      header h1{font-size:1rem}
+    }
+    @media(max-width:560px){
+      .summary-cards{grid-template-columns:1fr}
+      .bottom-nav-inner{padding:.4rem}
+      .nav-item i{font-size:1rem}
+    }
+  </style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="main-header">
+    <div class="title">
+      <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;color:white;font-weight:700">PT</div>
+      <div>
+        <h1>Productivity Tracker</h1>
+        <div class="muted" id="subTitle">Motivation to do more — live stats</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:.6rem;align-items:center">
+      <button class="btn small" id="exportBtn" title="Export CSV"><i class="fas fa-file-export"></i> Export</button>
+      <button class="btn small ghost" id="darkToggle" title="Toggle Dark Mode"><i class="fas fa-moon"></i></button>
+    </div>
+  </header>
+
+  <!-- Home -->
+  <section id="homeSection" class="section active card">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <h2 style="margin:.2rem 0 0">Home</h2>
+        <div class="muted" id="quotes">Keep going — small progress adds up.</div>
+      </div>
+      <div class="muted">Today: <span id="todayDate"></span></div>
+    </div>
+
+    <div style="margin-top:.8rem;display:flex;gap:1rem;flex-wrap:wrap">
+      <div style="flex:1;min-width:220px">
+        <div class="card">
+          <h3 style="margin:.2rem 0">Log Study</h3>
+          <div class="muted">Study Hours (max per session: 12, per day: 24)</div>
+          <div style="display:flex;gap:.5rem;margin-top:.5rem">
+            <input id="studyHours" type="number" min="0.1" max="12" step="0.1" placeholder="Hours (e.g., 1.5)">
+            <select id="studyCategory">
+              <option value="College Study">College Study</option>
+              <option value="Online Study">Online Study</option>
+              <option value="Self Study">Self Study</option>
+              <option value="Coding">Coding</option>
+            </select>
+            <button class="btn" onclick="logStudy()"><i class="fas fa-book"></i> Add</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:1rem">
+          <h3 style="margin:.2rem 0">Log Workout</h3>
+          <div class="muted">Minutes of workout</div>
+          <div style="display:flex;gap:.5rem;margin-top:.5rem">
+            <input id="workoutMins" type="number" min="1" step="1" placeholder="Minutes">
+            <button class="btn" onclick="logWorkout()"><i class="fas fa-dumbbell"></i> Add</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:1rem">
+          <h3 style="margin:.2rem 0">Quick Task</h3>
+          <div class="muted">Add quick task with time/duration</div>
+          <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem">
+            <input id="quickTaskTitle" placeholder="Title">
+            <div style="display:flex;gap:.5rem">
+              <input id="quickTaskTime" type="time">
+              <input id="quickTaskDuration" type="number" min="1" placeholder="Duration (mins)">
+              <button class="btn" onclick="addQuickTask()"><i class="fas fa-bolt"></i> Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex:1;min-width:300px">
+        <div class="card">
+          <h3 style="margin:.2rem 0">Sleep / Wake</h3>
+          <div class="muted">Log sleep and wake-up times (stored per day)</div>
+          <div style="display:flex;gap:.5rem;margin-top:.5rem;align-items:center">
+            <input id="sleepTime" type="time">
+            <input id="wakeTime" type="time">
+            <button class="btn" onclick="logSleep()"><i class="fas fa-bed"></i> Save</button>
+          </div>
+          <div style="margin-top:.6rem" id="sleepInfo"></div>
+        </div>
+
+        <div class="card" style="margin-top:1rem">
+          <h3 style="margin:.2rem 0">Quick Stats</h3>
+          <div style="display:flex;gap:1rem;flex-wrap:wrap">
+            <div class="summary-card" style="min-width:120px">
+              <div class="muted">Study (today)</div>
+              <div id="todayStudyHours" style="font-weight:800;font-size:1.2rem">0 hrs</div>
+            </div>
+            <div class="summary-card" style="min-width:120px">
+              <div class="muted">Workout (today)</div>
+              <div id="todayWorkout" style="font-weight:800;font-size:1.2rem">0 min</div>
+            </div>
+            <div class="summary-card" style="min-width:120px">
+              <div class="muted">Tasks Done (today)</div>
+              <div id="todayCompletedTasks" style="font-weight:800;font-size:1.2rem">0</div>
+            </div>
+            <div class="summary-card" style="min-width:120px">
+              <div class="muted">Streak</div>
+              <div id="streakCount" style="font-weight:800;font-size:1.2rem">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tasks -->
+  <section id="tasksSection" class="section">
+    <div class="card">
+      <h2 style="margin:.2rem 0">Tasks</h2>
+      <div class="muted">Add tasks, set priority, time slots. Active / Completed sections update automatically.</div>
+      <div style="display:flex;gap:.6rem;margin-top:.8rem;flex-wrap:wrap">
+        <input id="newTaskTitle" placeholder="Task title">
+        <input id="newTaskDesc" placeholder="Description">
+        <select id="taskPriority">
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+        <select id="taskCategory">
+          <option value="personal">Personal</option>
+          <option value="work">Work</option>
+          <option value="study">Study</option>
+          <option value="health">Health</option>
+        </select>
+        <input id="taskStartTime" type="time" title="Start">
+        <input id="taskEndTime" type="time" title="End">
+        <button class="btn" onclick="addNewTask()"><i class="fas fa-plus"></i> Add Task</button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap">
+      <div class="card col" style="min-width:300px">
+        <h3 style="margin:.2rem 0">Active Tasks</h3>
+        <div id="activeTasks" style="display:flex;flex-direction:column;gap:.6rem"></div>
+      </div>
+
+      <div class="card col" style="min-width:300px">
+        <h3 style="margin:.2rem 0">Completed Tasks</h3>
+        <div id="completedTasks" style="display:flex;flex-direction:column;gap:.6rem"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dashboard -->
+  <section id="dashboardSection" class="section">
+    <h2 style="margin:.2rem 0">Dashboard</h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
+      <div class="filters" style="margin-bottom:.6rem">
+        <button class="btn small" onclick="updateDashboard('weekly')">Weekly</button>
+        <button class="btn small" onclick="updateDashboard('monthly')">Monthly</button>
+        <button class="btn small" onclick="updateDashboard('yearly')">Yearly</button>
+      </div>
+      <div class="muted">XP: <span id="xpPoints">0</span></div>
+    </div>
+
+    <div class="summary-cards" style="margin-top:.6rem">
+      <div class="summary-card">
+        <div class="muted">Total Study (selected)</div>
+        <div id="selStudy" style="font-weight:800">0 hrs</div>
+      </div>
+      <div class="summary-card">
+        <div class="muted">Total Workout (selected)</div>
+        <div id="selWorkout" style="font-weight:800">0 min</div>
+      </div>
+      <div class="summary-card">
+        <div class="muted">Tasks Completed (selected)</div>
+        <div id="selTasks" style="font-weight:800">0</div>
+      </div>
+      <div class="summary-card">
+        <div class="muted">Current Streak</div>
+        <div id="selStreak" style="font-weight:800">0</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem">
+      <div class="chart-wrap" style="flex:1;min-width:300px">
+        <h4 style="margin:.2rem 0">Study Hours (day-wise)</h4>
+        <canvas id="chartStudy" height="120"></canvas>
+      </div>
+      <div class="chart-wrap" style="flex:1;min-width:300px">
+        <h4 style="margin:.2rem 0">Workout Minutes (day-wise)</h4>
+        <canvas id="chartWorkout" height="120"></canvas>
+      </div>
+      <div class="chart-wrap" style="flex:1;min-width:300px">
+        <h4 style="margin:.2rem 0">Tasks Completed (day-wise)</h4>
+        <canvas id="chartTasks" height="120"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- Analytics -->
+  <section id="analyticsSection" class="section">
+    <h2 style="margin:.2rem 0">Analytics</h2>
+    <div class="filters" style="margin-top:.5rem;margin-bottom:.6rem">
+      <button class="btn small" onclick="updateAnalytics('weekly')">Weekly</button>
+      <button class="btn small" onclick="updateAnalytics('monthly')">Monthly</button>
+      <button class="btn small" onclick="updateAnalytics('yearly')">Yearly</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="chart-wrap">
+        <h4 style="margin:.2rem 0">Study Hours by Category</h4>
+        <canvas id="chartStudyByCat" height="140"></canvas>
+      </div>
+      <div class="chart-wrap">
+        <h4 style="margin:.2rem 0">Task Completion Trend</h4>
+        <canvas id="chartTaskTrend" height="140"></canvas>
+      </div>
+
+      <div class="chart-wrap">
+        <h4 style="margin:.2rem 0">Sleep Patterns (Sleep vs Wake hour)</h4>
+        <canvas id="chartSleep" height="140"></canvas>
+      </div>
+
+      <div class="chart-wrap">
+        <h4 style="margin:.2rem 0">Workout Distribution</h4>
+        <canvas id="chartWorkoutDist" height="140"></canvas>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<nav class="bottom-nav" aria-hidden="false">
+  <div class="bottom-nav-inner" role="navigation">
+    <div class="nav-item active" data-target="homeSection" onclick="showSection('homeSection', this)"><i class="fas fa-home"></i>Home</div>
+    <div class="nav-item" data-target="tasksSection" onclick="showSection('tasksSection', this)"><i class="fas fa-tasks"></i>Tasks</div>
+    <div class="nav-item" data-target="dashboardSection" onclick="showSection('dashboardSection', this)"><i class="fas fa-chart-line"></i>Dashboard</div>
+    <div class="nav-item" data-target="analyticsSection" onclick="showSection('analyticsSection', this)"><i class="fas fa-chart-pie"></i>Analytics</div>
+  </div>
+</nav>
+
+<script>
+/*
+  Productivity Tracker - single file app
+  - Fixed broken structure and added full functionality
+  - All data stored day-wise using keys: prefix + type + _YYYY-MM-DD
+*/
+
+const STORAGE_PREFIX = 'prodtrk_';
+const MAX_DAILY_STUDY = 24;
+const MAX_SESSION_STUDY = 12;
+
+let charts = {};
+let currentDashboardRange = 'weekly';
+let currentAnalyticsRange = 'weekly';
+
+function $(id){ return document.getElementById(id); }
+
+function showSection(id, el){
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  if(id==='dashboardSection') updateDashboard(currentDashboardRange);
+  if(id==='analyticsSection') updateAnalytics(currentAnalyticsRange);
+  if(id==='homeSection') loadHomeQuickStats();
+  if(id==='tasksSection') loadTasks();
+}
+
+/* ====== Helper: Date keys & ranges ====== */
+function todayISO(){ return new Date().toISOString().split('T')[0]; }
+function datePlusDays(baseDateISO, offset){
+  const d = new Date(baseDateISO + 'T00:00:00');
+  d.setDate(d.getDate()+offset);
+  return d.toISOString().split('T')[0];
+}
+function formatDateLabel(iso){ const d=new Date(iso); return `${d.getMonth()+1}/${d.getDate()}`; }
+
+function getRangeDays(range){
+  const today = new Date();
+  let days = [];
+  if(range==='weekly'){
+    for(let i=6;i>=0;i--) days.push(datePlusDays(todayISO(), -i));
+  } else if(range==='monthly'){
+    const d = new Date();
+    const daysInMonth = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+    for(let i=daysInMonth-1;i>=0;i--) days.push(datePlusDays(d.toISOString().split('T')[0], -i));
+  } else { // yearly: monthly buckets
+    for(let m=0;m<12;m++){
+      const d = new Date();
+      d.setMonth(m); d.setDate(1);
+      days.push(d.toISOString().slice(0,7)); // YYYY-MM
+    }
+  }
+  return days;
+}
+
+/* ====== LocalStorage helpers ====== */
+function read(key, fallback=null){
+  try{ const v = localStorage.getItem(STORAGE_PREFIX + key); return v ? JSON.parse(v) : fallback; } catch(e){ return fallback; }
+}
+function write(key, val){
+  localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(val));
+}
+
+/* ====== Toast & Notifications ====== */
+let toastTimer=null;
+function showToast(msg, timeout=2200){
+  const t = $('toast');
+  t.textContent = msg;
+  t.style.display='block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.style.display='none', timeout);
+}
+function requestNotificationPermission(){
+  if("Notification" in window && Notification.permission!=='granted') Notification.requestPermission();
+}
+
+/* ====== Quotes (daily rotate) ====== */
+const QUOTES = [
+  "Small steps every day lead to big gains.",
+  "Focus on progress, not perfection.",
+  "Your future is created by what you do today.",
+  "Consistency beats intensity over time.",
+  "Do something today your future self will thank you for."
+];
+function setDailyQuote(){
+  const idx = new Date().toISOString().split('T')[0].split('-').join('') % QUOTES.length;
+  $('quotes').textContent = QUOTES[idx];
+}
+
+/* ====== Study Logging ====== */
+function getStudyForDay(dayISO){
+  return read('study_' + dayISO, []);
+}
+function saveStudyForDay(dayISO, arr){ write('study_' + dayISO, arr); }
+
+function totalStudyForDay(dayISO){
+  const arr = getStudyForDay(dayISO);
+  return arr.reduce((s,x)=>s+(parseFloat(x.hours)||0),0);
+}
+
+function logStudy(){
+  const hoursInput = parseFloat($('studyHours').value || 0);
+  const category = $('studyCategory').value;
+  if(!hoursInput || hoursInput<=0){ showToast('Enter valid study hours'); return; }
+  if(hoursInput>MAX_SESSION_STUDY){ showToast(`Session max ${MAX_SESSION_STUDY} hrs`); return; }
+
+  const today = todayISO();
+  let todayTotal = totalStudyForDay(today);
+  if(todayTotal + hoursInput > MAX_DAILY_STUDY){
+    showToast('Daily total capped at 24 hrs. Logging adjusted.');
+    // cap to max possible without exceeding 24
+    const allowed = Math.max(0, MAX_DAILY_STUDY - todayTotal);
+    if(allowed <= 0) return;
+    // adjust to allowed
+    const entry = { hours: allowed, category, ts: new Date().toISOString() };
+    const arr = getStudyForDay(today);
+    arr.push(entry);
+    saveStudyForDay(today, arr);
+    $('studyHours').value='';
+    showToast(`${allowed} hr ${category} added (capped)`);
+    updateDashboard(currentDashboardRange); updateChartsOnDataChange();
+    return;
+  }
+
+  const entry = { hours: hoursInput, category, ts: new Date().toISOString() };
+  const arr = getStudyForDay(today);
+  arr.push(entry);
+  saveStudyForDay(today, arr);
+  $('studyHours').value='';
+  showToast(`${hoursInput} hr ${category} added! Great job!`);
+  addXP(Math.round(hoursInput*20));
+  updateDashboard(currentDashboardRange); updateChartsOnDataChange();
+}
+
+/* ====== Workouts ====== */
+function getWorkoutForDay(dayISO){ return read('workouts_' + dayISO, []); }
+function saveWorkoutForDay(dayISO, arr){ write('workouts_' + dayISO, arr); }
+function totalWorkoutForDay(dayISO){ return getWorkoutForDay(dayISO).reduce((s,x)=>s+(parseInt(x.mins)||0),0); }
+
+function logWorkout(){
+  const mins = parseInt($('workoutMins').value || 0);
+  if(!mins || mins<=0){ showToast('Enter workout minutes'); return; }
+  const today = todayISO();
+  const arr = getWorkoutForDay(today);
+  arr.push({ mins, ts: new Date().toISOString() });
+  saveWorkoutForDay(today, arr);
+  $('workoutMins').value='';
+  showToast(`${mins} min workout added!`);
+  addXP(Math.round(mins/6)); // small XP
+  updateDashboard(currentDashboardRange); updateChartsOnDataChange();
+}
+
+/* ====== Sleep Logging ====== */
+function getSleepForDay(dayISO){ return read('sleep_' + dayISO, null); }
+function saveSleepForDay(dayISO, obj){ write('sleep_' + dayISO, obj); }
+
+function logSleep(){
+  const sleep = $('sleepTime').value;
+  const wake = $('wakeTime').value;
+  if(!sleep || !wake){ showToast('Select both sleep and wake times'); return; }
+  const today = todayISO();
+  saveSleepForDay(today, { sleep, wake, ts: new Date().toISOString() });
+  $('sleepTime').value=''; $('wakeTime').value='';
+  showToast('Sleep times saved');
+  updateSleepInfo();
+  updateChartsOnDataChange();
+}
+
+function updateSleepInfo(){
+  const today = todayISO();
+  const s = getSleepForDay(today);
+  if(!s){ $('sleepInfo').textContent='No sleep data for today'; return; }
+  const sl = s.sleep, wk = s.wake;
+  const sleepDate = new Date(`${today}T${sl}`);
+  let wakeDate = new Date(`${today}T${wk}`);
+  if(wakeDate <= sleepDate) wakeDate.setDate(wakeDate.getDate()+1);
+  const diff = (wakeDate - sleepDate)/3600000;
+  $('sleepInfo').textContent = `Sleep: ${sl} — Wake: ${wk} — Duration: ${diff.toFixed(2)} hrs`;
+}
+
+/* ====== Tasks ====== */
+function getTasksForDay(dayISO){ return read('tasks_' + dayISO, []); }
+function saveTasksForDay(dayISO, arr){ write('tasks_' + dayISO, arr); }
+function addNewTask(){
+  const title = $('newTaskTitle').value.trim();
+  const description = $('newTaskDesc').value.trim();
+  const priority = $('taskPriority').value;
+  const category = $('taskCategory').value;
+  const startTime = $('taskStartTime').value;
+  const endTime = $('taskEndTime').value;
+
+  if(!title){ showToast('Enter a task title'); return; }
+  if(startTime && endTime && startTime >= endTime){ showToast('End time must be after start time'); return; }
+
+  const today = todayISO();
+  const tasks = getTasksForDay(today);
+  const id = Date.now() + Math.floor(Math.random()*999);
+  const t = { id, title, description, priority, category, startTime, endTime, completed:false, createdAt: new Date().toISOString() };
+  tasks.push(t);
+  saveTasksForDay(today, tasks);
+
+  // clear inputs
+  $('newTaskTitle').value=''; $('newTaskDesc').value=''; $('taskPriority').value='low';
+  $('taskCategory').value='personal'; $('taskStartTime').value=''; $('taskEndTime').value='';
+
+  showToast('Task added');
+  updateDashboard(currentDashboardRange); loadTasks(); updateChartsOnDataChange();
+}
+
+function addQuickTask(){
+  const title = $('quickTaskTitle').value.trim();
+  const time = $('quickTaskTime').value;
+  const duration = parseInt($('quickTaskDuration').value || 0);
+  if(!title){ showToast('Enter quick task title'); return; }
+  const today = todayISO();
+  const tasks = getTasksForDay(today);
+  const id = Date.now() + Math.floor(Math.random()*999);
+  const endTime = time && duration ? addDurationToTime(time,duration) : '';
+  tasks.push({ id, title, description:'', priority:'low', category:'quick', startTime: time||'', endTime, completed:false, createdAt:new Date().toISOString() });
+  saveTasksForDay(today, tasks);
+  $('quickTaskTitle').value=''; $('quickTaskTime').value=''; $('quickTaskDuration').value='';
+  showToast('Quick task added');
+  loadTasks(); updateDashboard(currentDashboardRange); updateChartsOnDataChange();
+}
+function addDurationToTime(timeStr, mins){
+  const [hh,mm] = timeStr.split(':').map(Number);
+  const dt = new Date(); dt.setHours(hh); dt.setMinutes(mm+mins);
+  const hh2 = String(dt.getHours()).padStart(2,'0'), mm2 = String(dt.getMinutes()).padStart(2,'0');
+  return `${hh2}:${mm2}`;
+}
+
+function loadTasks(){
+  const today = todayISO();
+  const tasks = getTasksForDay(today);
+  const active = tasks.filter(t=>!t.completed).sort((a,b)=>a.createdAt<b.createdAt?1:-1);
+  const completed = tasks.filter(t=>t.completed).sort((a,b)=>b.completedAt?b.completedAt-a.completedAt:0);
+
+  const activeCont = $('activeTasks'); const compCont = $('completedTasks');
+  activeCont.innerHTML=''; compCont.innerHTML='';
+
+  if(active.length===0) activeCont.innerHTML='<div class="muted">No active tasks</div>';
+  if(completed.length===0) compCont.innerHTML='<div class="muted">No completed tasks</div>';
+
+  active.forEach(t=>{
+    const div = document.createElement('div'); div.className='task-item';
+    div.innerHTML = `
+      <input type="checkbox" class="task-checkbox" ${t.completed ? 'checked':''} onchange="toggleTask(${t.id}, false)">
+      <div style="flex:1">
+        <div style="font-weight:700">${escapeHtml(t.title)}</div>
+        ${t.description? `<div class="muted">${escapeHtml(t.description)}</div>` : ''}
+        <div class="task-meta">
+          <span><i class="fas fa-tag"></i> ${escapeHtml(t.category)}</span>
+          <span class="priority-${t.priority}"><i class="fas fa-flag"></i> ${t.priority}</span>
+          ${t.startTime ? `<span><i class="fas fa-clock"></i> ${t.startTime}${t.endTime? ' - '+t.endTime:''}</span>` : ''}
+        </div>
+      </div>
+      <div class="task-actions">
+        <button title="Complete" class="btn small" onclick="toggleTask(${t.id}, true)"><i class="fas fa-check"></i></button>
+        <button title="Delete" class="btn small ghost" onclick="deleteTask(${t.id})"><i class="fas fa-trash"></i></button>
+      </div>
+    `;
+    activeCont.appendChild(div);
+  });
+
+  completed.forEach(t=>{
+    const div = document.createElement('div'); div.className='task-item task-completed';
+    div.innerHTML = `
+      <input type="checkbox" class="task-checkbox" checked onchange="toggleTask(${t.id}, false)">
+      <div style="flex:1">
+        <div style="font-weight:700">${escapeHtml(t.title)}</div>
+        ${t.description? `<div class="muted">${escapeHtml(t.description)}</div>` : ''}
+        <div class="task-meta">
+          <span><i class="fas fa-tag"></i> ${escapeHtml(t.category)}</span>
+          ${t.startTime ? `<span><i class="fas fa-clock"></i> ${t.startTime}${t.endTime? ' - '+t.endTime:''}</span>` : ''}
+          <span class="muted">Completed</span>
+        </div>
+      </div>
+      <div class="task-actions">
+        <button title="Delete" class="btn small ghost" onclick="deleteTask(${t.id})"><i class="fas fa-trash"></i></button>
+      </div>
+    `;
+    compCont.appendChild(div);
+  });
+
+  updateTodayCompletedCount();
+}
+
+function toggleTask(id, markCompleted){
+  const today = todayISO();
+  const tasks = getTasksForDay(today);
+  const idx = tasks.findIndex(t=>t.id===id);
+  if(idx===-1) return;
+  if(markCompleted){
+    tasks[idx].completed = true;
+    tasks[idx].completedAt = new Date().toISOString();
+    showToast('Task completed');
+    addXP(8);
+  } else {
+    tasks[idx].completed = !tasks[idx].completed;
+    if(!tasks[idx].completed) delete tasks[idx].completedAt;
+    showToast(tasks[idx].completed ? 'Task completed' : 'Task marked active');
+  }
+  saveTasksForDay(today, tasks);
+  loadTasks(); updateDashboard(currentDashboardRange); updateChartsOnDataChange();
+}
+
+function deleteTask(id){
+  const today = todayISO();
+  let tasks = getTasksForDay(today);
+  tasks = tasks.filter(t=>t.id!==id);
+  saveTasksForDay(today, tasks);
+  showToast('Task deleted');
+  loadTasks(); updateDashboard(currentDashboardRange); updateChartsOnDataChange();
+}
+
+/* ====== XP & Streaks & Achievements (simple) ====== */
+function getXP(){ return parseInt(read('xp',0) || 0); }
+function setXP(v){ write('xp', v); $('xpPoints').textContent = v; }
+function addXP(amount){
+  const cur = getXP();
+  setXP(cur + amount);
+}
+
+function updateStreak(){
+  // simple streak count: number of consecutive days with any logged activity up to today
+  let streak = 0;
+  for(let i=0;i<365;i++){
+    const d = datePlusDays(todayISO(), -i);
+    const hasActivity = (getStudyForDay(d).length>0) || (getWorkoutForDay(d).length>0) || (getTasksForDay(d).length>0) || getSleepForDay(d);
+    if(hasActivity) streak++; else break;
+  }
+  write('streak', streak);
+  $('streakCount').textContent = streak;
+}
+
+/* ====== Dashboard & Charts ====== */
+function initCharts(){
+  // study
+  const ctxS = $('chartStudy').getContext('2d');
+  charts.study = new Chart(ctxS, { type:'line', data:{ labels:[], datasets:[{label:'Hours',data:[],borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,0.12)',tension:0.3}]}, options:{responsive:true,plugins:{legend:{display:false}}} });
+
+  // workout
+  const ctxW = $('chartWorkout').getContext('2d');
+  charts.workout = new Chart(ctxW, { type:'line', data:{ labels:[], datasets:[{label:'Minutes',data:[],borderColor:'#0ea5a4',backgroundColor:'rgba(14,165,164,0.12)',tension:0.3}]}, options:{responsive:true,plugins:{legend:{display:false}}} });
+
+  // tasks completed
+  const ctxT = $('chartTasks').getContext('2d');
+  charts.tasks = new Chart(ctxT, { type:'bar', data:{ labels:[], datasets:[{label:'Completed',data:[],backgroundColor:'#2b7cff'}]}, options:{responsive:true,plugins:{legend:{display:false}}} });
+
+  // analytics specific
+  const ctxSBC = $('chartStudyByCat').getContext('2d');
+  charts.studyByCat = new Chart(ctxSBC, { type:'bar', data:{ labels:[], datasets:[{label:'Hours',data:[],backgroundColor:'#2b7cff'}]}, options:{responsive:true} });
+
+  const ctxTaskTrend = $('chartTaskTrend').getContext('2d');
+  charts.taskTrend = new Chart(ctxTaskTrend, { type:'line', data:{ labels:[], datasets:[{label:'Completed',data:[],borderColor:'#06b6d4',backgroundColor:'rgba(6,182,212,0.12)'}]}, options:{responsive:true} });
+
+  const ctxSleep = $('chartSleep').getContext('2d');
+  charts.sleep = new Chart(ctxSleep, { type:'line', data:{ labels:[], datasets:[
+    {label:'Sleep hour',data:[],borderColor:'#8b5cf6',tension:0.3},
+    {label:'Wake hour',data:[],borderColor:'#f97316',tension:0.3}
+  ]}, options:{responsive:true,scales:{y:{min:0,max:24}}} });
+
+  const ctxWDist = $('chartWorkoutDist').getContext('2d');
+  charts.workoutDist = new Chart(ctxWDist, { type:'doughnut', data:{ labels:[], datasets:[{data:[],backgroundColor:['#2b7cff','#06b6d4','#8b5cf6','#f97316']}]}, options:{responsive:true} });
+}
+
+function updateDashboard(range='weekly'){
+  currentDashboardRange = range;
+  // compute day-wise arrays for labels and totals
+  let days = getRangeDays(range);
+  const labels = [];
+  const studyData = [], workoutData = [], tasksData = [];
+  let totalStudy=0, totalWorkout=0, totalTasks=0;
+
+  if(range==='yearly'){
+    // months aggregated
+    for(const month of days){
+      labels.push(month);
+      const yearmonth = month; // YYYY-MM
+      // gather days of that month
+      let sumStudy=0, sumWork=0, sumTasks=0;
+      const [y,m] = yearmonth.split('-');
+      const daysIn = new Date(y,parseInt(m),0).getDate();
+      for(let d=1;d<=daysIn;d++){
+        const iso = `${yearmonth}-${String(d).padStart(2,'0')}`;
+        sumStudy += totalStudyForDay(iso);
+        sumWork += totalWorkoutForDay(iso);
+        sumTasks += getTasksForDay(iso).filter(t=>t.completed).length;
+      }
+      studyData.push(Number(sumStudy.toFixed(2))); workoutData.push(sumWork); tasksData.push(sumTasks);
+      totalStudy+=sumStudy; totalWorkout+=sumWork; totalTasks+=sumTasks;
+    }
+  } else {
+    for(const day of days){
+      labels.push(range==='monthly'? day.split('-')[2] : formatDateLabel(day));
+      studyData.push(Number(totalStudyForDay(day).toFixed(2)));
+      workoutData.push(totalWorkoutForDay(day));
+      tasksData.push(getTasksForDay(day).filter(t=>t.completed).length);
+      totalStudy += totalStudyForDay(day); totalWorkout += totalWorkoutForDay(day);
+      totalTasks += getTasksForDay(day).filter(t=>t.completed).length;
+    }
+  }
+
+  // cap any unrealistic values
+  for(let i=0;i<studyData.length;i++){
+    if(studyData[i] > MAX_DAILY_STUDY){ studyData[i] = MAX_DAILY_STUDY; }
+  }
+
+  // update summary
+  $('selStudy').textContent = `${Number(totalStudy.toFixed(2))} hrs`;
+  $('selWorkout').textContent = `${totalWorkout} min`;
+  $('selTasks').textContent = `${totalTasks}`;
+  updateStreak(); $('selStreak').textContent = read('streak',0);
+
+  // update charts
+  if(charts.study){ charts.study.data.labels = labels; charts.study.data.datasets[0].data = studyData; charts.study.update(); }
+  if(charts.workout){ charts.workout.data.labels = labels; charts.workout.data.datasets[0].data = workoutData; charts.workout.update(); }
+  if(charts.tasks){ charts.tasks.data.labels = labels; charts.tasks.data.datasets[0].data = tasksData; charts.tasks.update(); }
+}
+
+/* ====== Analytics updates ====== */
+function aggregateStudyByCategory(range){
+  const days = getRangeDays(range);
+  const categories = { 'College Study':0, 'Online Study':0, 'Self Study':0, 'Coding':0 };
+  if(range==='yearly'){
+    // loop months -> days within
+    for(const ym of days){
+      const [y,m] = ym.split('-');
+      const daysInMonth = new Date(y,parseInt(m),0).getDate();
+      for(let d=1;d<=daysInMonth;d++){
+        const iso = `${ym}-${String(d).padStart(2,'0')}`;
+        const arr = getStudyForDay(iso);
+        arr.forEach(e => { if(categories[e.category]!==undefined) categories[e.category]+=Number(e.hours||0); });
+      }
+    }
+  } else {
+    for(const day of days){
+      const arr = getStudyForDay(day);
+      arr.forEach(e => { if(categories[e.category]!==undefined) categories[e.category]+=Number(e.hours||0); });
+    }
+  }
+  return categories;
+}
+
+function updateAnalytics(range='weekly'){
+  currentAnalyticsRange = range;
+  // study by category
+  const categories = aggregateStudyByCategory(range);
+  charts.studyByCat.data.labels = Object.keys(categories);
+  charts.studyByCat.data.datasets[0].data = Object.values(categories).map(v=>Number(v.toFixed(2)));
+  charts.studyByCat.update();
+
+  // task trend: completed per day
+  const days = getRangeDays(range);
+  const labels = []; const completed = [];
+  if(range==='yearly'){
+    for(const m of days){
+      labels.push(m);
+      let cnt=0;
+      const [y,mm]=m.split('-');
+      const di = new Date(y,parseInt(mm),0).getDate();
+      for(let d=1;d<=di;d++){
+        cnt += getTasksForDay(`${m}-${String(d).padStart(2,'0')}`).filter(t=>t.completed).length;
+      }
+      completed.push(cnt);
+    }
+  } else {
+    for(const d of days){ labels.push(formatDateLabel(d)); completed.push(getTasksForDay(d).filter(t=>t.completed).length); }
+  }
+  charts.taskTrend.data.labels = labels; charts.taskTrend.data.datasets[0].data = completed; charts.taskTrend.update();
+
+  // sleep pattern: plot hour of sleep and wake average per day
+  const slabels = []; const sleepH=[]; const wakeH=[];
+  if(range==='yearly'){
+    for(const ym of days){
+      slabels.push(ym);
+      let accS=0,accW=0,cnt=0;
+      const [y,m] = ym.split('-');
+      const di = new Date(y,parseInt(m),0).getDate();
+      for(let d=1;d<=di;d++){
+        const iso = `${ym}-${String(d).padStart(2,'0')}`;
+        const s = getSleepForDay(iso);
+        if(s){ const sh = Number(s.sleep.split(':')[0]); const wh = Number(s.wake.split(':')[0]); accS+=sh; accW+=wh; cnt++; }
+      }
+      sleepH.push(cnt?Number((accS/cnt).toFixed(2)):null); wakeH.push(cnt?Number((accW/cnt).toFixed(2)):null);
+    }
+  } else {
+    for(const d of days){
+      slabels.push(formatDateLabel(d));
+      const s = getSleepForDay(d);
+      if(s){ sleepH.push(Number(s.sleep.split(':')[0])); wakeH.push(Number(s.wake.split(':')[0])); } else { sleepH.push(null); wakeH.push(null); }
+    }
+  }
+  charts.sleep.data.labels = slabels;
+  charts.sleep.data.datasets[0].data = sleepH;
+  charts.sleep.data.datasets[1].data = wakeH;
+  charts.sleep.update();
+
+  // workout distribution (by day or total)
+  const wlabels = []; const wdata = [];
+  if(range==='yearly'){
+    for(const m of days){
+      let sum=0;
+      const [y,mm]=m.split('-'); const di = new Date(y,parseInt(mm),0).getDate();
+      for(let d=1;d<=di;d++) sum += totalWorkoutForDay(`${m}-${String(d).padStart(2,'0')}`);
+      wlabels.push(m); wdata.push(sum);
+    }
+  } else {
+    for(const d of days){ wlabels.push(formatDateLabel(d)); wdata.push(totalWorkoutForDay(d)); }
+  }
+  charts.workoutDist.data.labels = wlabels.slice(0,6);
+  charts.workoutDist.data.datasets[0].data = wdata.slice(0,6);
+  charts.workoutDist.update();
+}
+
+function updateChartsOnDataChange(){
+  updateDashboard(currentDashboardRange);
+  updateAnalytics(currentAnalyticsRange);
+}
+
+/* ====== Utilities ====== */
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, (m)=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+/* ====== Export CSV ====== */
+function exportToCSV(){
+  const range = currentAnalyticsRange || 'weekly';
+  const days = getRangeDays(range);
+  let rows = [['date','study_hours','workout_mins','tasks_completed','sleep','wake']];
+  if(range==='yearly'){
+    // use monthly rows
+    for(const m of days){
+      let study=0,work=0,tasks=0,sleep='',wake='';
+      const [y,mm]=m.split('-'); const di = new Date(y,parseInt(mm),0).getDate();
+      for(let d=1;d<=di;d++){
+        const iso = `${m}-${String(d).padStart(2,'0')}`;
+        study += totalStudyForDay(iso); work += totalWorkoutForDay(iso);
+        tasks += getTasksForDay(iso).filter(t=>t.completed).length;
+        const s = getSleepForDay(iso);
+        if(s){ sleep = s.sleep; wake = s.wake; }
+      }
+      rows.push([m, study, work, tasks, sleep, wake]);
+    }
+  } else {
+    for(const d of days){
+      rows.push([d, totalStudyForDay(d), totalWorkoutForDay(d), getTasksForDay(d).filter(t=>t.completed).length, (getSleepForDay(d)||{}).sleep||'', (getSleepForDay(d)||{}).wake||'']);
+    }
+  }
+  let csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = `prod_report_${new Date().toISOString().split('T')[0]}.csv`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ====== Init & bindings ====== */
+function updateTodayQuickStats(){
+  $('todayDate').textContent = new Date().toLocaleDateString();
+  $('todayStudyHours').textContent = `${totalStudyForDay(todayISO())} hrs`;
+  $('todayWorkout').textContent = `${totalWorkoutForDay(todayISO())} min`;
+  updateTodayCompletedCount();
+}
+
+function updateTodayCompletedCount(){
+  const cnt = getTasksForDay(todayISO()).filter(t=>t.completed).length;
+  $('todayCompletedTasks').textContent = cnt;
+}
+
+function loadHomeQuickStats(){ updateTodayQuickStats(); updateSleepInfo(); $('subTitle').textContent = 'Stay focused — check your progress'; }
+
+function initialize(){
+  setDailyQuote();
+  requestNotificationPermission();
+  $('todayDate').textContent = new Date().toLocaleDateString();
+  initCharts();
+  loadHomeQuickStats();
+  loadTasks();
+  updateDashboard('weekly');
+  updateAnalytics('weekly');
+  // events
+  $('exportBtn').addEventListener('click', exportToCSV);
+  $('darkToggle').addEventListener('click', ()=>{
+    document.documentElement.classList.toggle('dark');
+  });
+  // initial XP display
+  $('xpPoints').textContent = getXP();
+}
+
+window.addEventListener('load', initialize);
+
+/* Expose some functions to global (for inline handlers) */
+window.showSection = showSection;
+window.addNewTask = addNewTask;
+window.loadTasks = loadTasks;
+window.toggleTask = toggleTask;
+window.deleteTask = deleteTask;
+window.logStudy = logStudy;
+window.logWorkout = logWorkout;
+window.addQuickTask = addQuickTask;
+window.logSleep = logSleep;
+window.updateDashboard = updateDashboard;
+window.updateAnalytics = updateAnalytics;
+window.exportToCSV = exportToCSV;
+
+</script>
+</body>
+</html>
