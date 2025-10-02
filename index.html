@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Productivity Tracker</title>
+  <title>TrackeX</title>
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -34,7 +34,9 @@
     .row{display:flex;gap:1rem;align-items:center}
     .col{flex:1}
     .btn{background:linear-gradient(90deg,var(--accent),var(--accent-dark));color:white;padding:.6rem .9rem;border-radius:10px;border:none;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:.5rem}
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn.ghost{background:transparent;color:var(--accent-dark);border:1px solid rgba(0,0,0,0.06)}
+    .btn.active { background: var(--success); }
     .small{padding:.35rem .6rem;font-size:.9rem;border-radius:8px}
     input, select, textarea{width:100%;padding:.6rem;border-radius:8px;border:1px solid rgba(10,20,40,0.06);box-sizing:border-box;background:transparent}
     .muted{color:var(--muted);font-size:.9rem}
@@ -43,38 +45,98 @@
     .section.active{display:block;opacity:1;transform:none}
     /* Bottom nav */
     .bottom-nav{position:fixed;left:0;right:0;bottom:14px;display:flex;justify-content:center;pointer-events:none}
-    .bottom-nav-inner{width:100%;max-width:var(--max-width);background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.75));border-radius:18px;box-shadow:0 12px 30px rgba(10,20,40,0.12);display:flex;justify-content:space-around;padding:.6rem;pointer-events:auto}
-    .nav-item{flex:1;text-align:center;padding:.45rem .35rem;border-radius:12px;color:var(--muted);cursor:pointer}
-    .nav-item.active{background:linear-gradient(90deg, rgba(43,124,255,0.12), rgba(26,94,207,0.07));color:var(--accent-dark);font-weight:700}
+    .bottom-nav-inner{width:100%;max-width:var(--max-width);background:linear-gradient(180deg, rgb(255, 255, 255), rgba(255,255,255,0.75));border-radius:18px;box-shadow:0 12px 30px rgba(10,20,40,0.12);display:flex;justify-content:space-around;padding:.6rem;pointer-events:auto}
+    .nav-item{text-align:center;padding:.45rem .35rem;border-radius:12px;color:var(--muted);cursor:pointer}
+    .nav-item.active{background:linear-gradient(90deg, rgba(4, 100, 255, 0.12), rgba(26,94,207,0.07));color:var(--accent-dark);font-weight:700}
     .nav-item i{display:block;font-size:1.2rem;margin-bottom:4px}
-    /* Tasks */
-    .tasks-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-    .task-item{display:flex;gap:.75rem;padding:.6rem;border-radius:10px;align-items:flex-start;border:1px solid rgba(10,20,40,0.04);transition:all .18s}
-    .task-item:hover{transform:translateY(-4px)}
-    .task-completed{opacity:.55;text-decoration:line-through;background:linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.01))}
-    .task-checkbox{transform:scale(1.15);margin-top:3px}
-    .task-meta{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.5rem;font-size:.85rem;color:var(--muted)}
+    /* Tasks & Targets */
+    .task-item, .target-item {flex-wrap: wrap;gap:.75rem;padding:.2rem;border-radius:1px;align-items:center;border:1px solid rgba(10,20,40,0.04);transition:all .18s}
+    .task-item:hover, .target-item:hover {transform:translateY(-4px)}
+    .task-completed, .target-completed {opacity:.55;text-decoration:line-through;background:linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.01))}
+    .task-checkbox, .target-checkbox {transform:scale(1.15);}
+    .task-meta{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.5r  em;font-size:.85rem;color:var(--muted)}
     .priority-low{color:#2dbe60}
     .priority-medium{color:#ffb020}
     .priority-high{color:var(--danger)}
-    .task-actions{margin-left:auto;display:flex;gap:.4rem}
+    .task-actions, .target-actions {margin-left:auto;display:flex;gap:.4rem}
+
+    .tasks-layout {
+        
+        display: flex;
+        gap: 1rem;
+        word-wrap: break-word; /* Breaks long words if needed */
+  overflow-wrap: break-word; /* Modern way to break words */
+  text-overflow: ellipsis;
+        flex-wrap: wrap;
+    }
+    .tasks-layout > .card {
+        flex: 1;
+        max-width: 490px;
+    }
+
     /* Dashboard summary */
     .summary-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
     .summary-card{padding:1rem;border-radius:12px;background:linear-gradient(180deg,#fff,#f6fbff);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:.5rem}
     .chart-wrap{background:var(--card);border-radius:12px;padding:1rem;box-shadow:var(--shadow);margin-bottom:1rem}
+    
+    /* Helper classes for forms */
+    .form-row {
+        display: flex;
+        gap: .5rem;
+        margin-top: .5rem;
+        flex-wrap: wrap;
+    }
+    .form-row > * {
+        flex: 1 1 auto;
+    }
+
     /* Analytics filters */
     .filters{display:flex;gap:.5rem;flex-wrap:wrap}
     .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;background:#0c1726;color:white;padding:.6rem 1rem;border-radius:8px;display:none;z-index:9999}
-    /* Responsive */
-    @media(max-width:900px){
-      .tasks-grid{grid-template-columns:1fr}
-      .summary-cards{grid-template-columns:repeat(2,1fr)}
-      header h1{font-size:1rem}
+    
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
     }
-    @media(max-width:560px){
-      .summary-cards{grid-template-columns:1fr}
-      .bottom-nav-inner{padding:.4rem}
-      .nav-item i{font-size:1rem}
+
+    /* AI Modal Styles */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+    .modal-content { background-color: var(--card); margin: 10% auto; padding: 24px; border: 1px solid rgba(0,0,0,0.1); width: 90%; max-width: 600px; border-radius: 12px; box-shadow: var(--shadow); position: relative; animation: fadeIn .3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    .close-modal { color: var(--muted); position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; }
+    .close-modal:hover, .close-modal:focus { color: var(--danger); text-decoration: none; cursor: pointer; }
+    #modalContent .subtask-item { display: flex; align-items: center; justify-content: space-between; padding: .6rem 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+    .dark #modalContent .subtask-item { border-bottom: 1px solid rgba(255,255,255,0.1); }
+    #modalContent .subtask-item:last-child { border-bottom: none; }
+
+    /* AI Chat Styles */
+    .chat-message { padding: .75rem 1rem; border-radius: 12px; max-width: 80%; line-height: 1.5; word-wrap: break-word; }
+    .chat-user { background-color: var(--accent); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .chat-ai { background-color: #f0f4f9; color: #333; align-self: flex-start; border-bottom-left-radius: 4px; }
+    .dark .chat-ai { background-color: #1a2433; color: #e6eef8; }
+    .typing-indicator span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: var(--muted); animation: bounce 1.4s infinite ease-in-out both; }
+    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+
+    /* Responsive */
+    @media(max-width:900px){ .tasks-grid{grid-template-columns:1fr} .summary-cards{grid-template-columns:repeat(2,1fr)} header h1{font-size:1rem} .analytics-grid { grid-template-columns: 1fr; } }
+    @media(max-width:768px){ 
+        .tasks-layout { flex-direction: column; }
+        /* Stack form inputs for easier use on mobile */
+        .task-form-inputs { flex-direction: column; align-items: stretch; }
+        .form-row { flex-direction: column; }
+        .form-row > .btn { justify-content: center; }
+    }
+    @media(max-width:560px){ 
+        .main-header { flex-direction: column; align-items: center; gap: 1rem; text-align: center; }
+        .summary-cards{grid-template-columns:1fr} 
+        .bottom-nav-inner{padding:.4rem} 
+        .nav-item i{font-size:1rem}
+        /* Hide button text on mobile to save space */
+        .btn-text { display: none; }
+        .header-buttons .btn.small { padding: .6rem; }
     }
   </style>
 </head>
@@ -82,61 +144,65 @@
 <div class="app" id="app">
   <header class="main-header">
     <div class="title">
-      <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;color:white;font-weight:700">PT</div>
-      <div>
-        <h1>Productivity Tracker</h1>
-        <div class="muted" id="subTitle">Motivation to do more — live stats</div>
+      <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;color:white;font-weight:700">X</div>
+      <div style="font-size: 40px; font-weight: 600; font-family:'Times New Roman', Times, serif;">
+        TrackeX
       </div>
+      
     </div>
-
-    <div style="display:flex;gap:.6rem;align-items:center">
-      <button class="btn small" id="exportBtn" title="Export CSV"><i class="fas fa-file-export"></i> Export</button>
+    <div class="muted" id="subTitle">Motivation to do more — live stats</div>
+    <div class="header-buttons" style="display:flex;gap:.6rem;align-items:center">
+      <button class="btn small ghost" id="notificationBtn" title="Enable Task Reminders"><i class="fas fa-bell"></i><span class="btn-text">&nbsp;Enable Reminders</span></button>
+      <button class="btn small" id="exportBtn" title="Export CSV"><i class="fas fa-file-export"></i><span class="btn-text">&nbsp;Export</span></button>
       <button class="btn small ghost" id="darkToggle" title="Toggle Dark Mode"><i class="fas fa-moon"></i></button>
     </div>
   </header>
 
   <!-- Home -->
   <section id="homeSection" class="section active card">
-    <div style="display:flex;justify-content:space-between;align-items:center;">
+     <div style="display:flex;justify-content:space-between;align-items:center;">
       <div>
         <h2 style="margin:.2rem 0 0">Home</h2>
-        <div class="muted" id="quotes">Keep going — small progress adds up.</div>
+        <div class="muted" id="todayQuote">Keep going — small progress adds up.</div>
       </div>
       <div class="muted">Today: <span id="todayDate"></span></div>
     </div>
-
     <div style="margin-top:.8rem;display:flex;gap:1rem;flex-wrap:wrap">
       <div style="flex:1;min-width:220px">
+        <div class="card" style="background: var(--accent); color: white;">
+          <h3 style="margin:.2rem 0">✨ Gemini AI Features</h3>
+          <div class="muted" style="color: rgba(255,255,255,0.8);">Enter your Gemini API key to enable AI features.</div>
+          <input id="apiKeyInput" type="password" placeholder="Enter your Gemini API Key" style="background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); color: white; margin-top: .5rem;" onkeyup="saveApiKeyOnEnter(event)">
+          <button class="btn ghost" style="margin-top: .5rem; border-color: white; color: white;" onclick="saveApiKey()">Save Key</button>
+        </div>
+        <div class="card">
+            <h3 style="margin:.2rem 0">✨ Daily Motivation</h3>
+            <div class="muted" id="quotesContainer" style="min-height: 40px;"> Your daily dose of motivation will appear here. </div>
+            <button class="btn small" id="getMotivationBtn" style="margin-top: 0.5rem;"><i class="fas fa-magic"></i> Get Fresh Motivation</button>
+        </div>
         <div class="card">
           <h3 style="margin:.2rem 0">Log Study</h3>
           <div class="muted">Study Hours (max per session: 12, per day: 24)</div>
-          <div style="display:flex;gap:.5rem;margin-top:.5rem">
+          <div class="form-row">
             <input id="studyHours" type="number" min="0.1" max="12" step="0.1" placeholder="Hours (e.g., 1.5)">
-            <select id="studyCategory">
-              <option value="College Study">College Study</option>
-              <option value="Online Study">Online Study</option>
-              <option value="Self Study">Self Study</option>
-              <option value="Coding">Coding</option>
-            </select>
+            <select id="studyCategory"> <option value="College Study">College Study</option> <option value="Online Study">Online Study</option> <option value="Self Study">Self Study</option> <option value="Coding">Coding</option> </select>
             <button class="btn" onclick="logStudy()"><i class="fas fa-book"></i> Add</button>
           </div>
         </div>
-
         <div class="card" style="margin-top:1rem">
           <h3 style="margin:.2rem 0">Log Workout</h3>
           <div class="muted">Minutes of workout</div>
-          <div style="display:flex;gap:.5rem;margin-top:.5rem">
+          <div class="form-row">
             <input id="workoutMins" type="number" min="1" step="1" placeholder="Minutes">
             <button class="btn" onclick="logWorkout()"><i class="fas fa-dumbbell"></i> Add</button>
           </div>
         </div>
-
         <div class="card" style="margin-top:1rem">
           <h3 style="margin:.2rem 0">Quick Task</h3>
           <div class="muted">Add quick task with time/duration</div>
           <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem">
             <input id="quickTaskTitle" placeholder="Title">
-            <div style="display:flex;gap:.5rem">
+            <div class="form-row">
               <input id="quickTaskTime" type="time">
               <input id="quickTaskDuration" type="number" min="1" placeholder="Duration (mins)">
               <button class="btn" onclick="addQuickTask()"><i class="fas fa-bolt"></i> Add</button>
@@ -144,19 +210,17 @@
           </div>
         </div>
       </div>
-
       <div style="flex:1;min-width:300px">
         <div class="card">
           <h3 style="margin:.2rem 0">Sleep / Wake</h3>
           <div class="muted">Log sleep and wake-up times (stored per day)</div>
-          <div style="display:flex;gap:.5rem;margin-top:.5rem;align-items:center">
+          <div class="form-row" style="align-items:center">
             <input id="sleepTime" type="time">
             <input id="wakeTime" type="time">
             <button class="btn" onclick="logSleep()"><i class="fas fa-bed"></i> Save</button>
           </div>
           <div style="margin-top:.6rem" id="sleepInfo"></div>
         </div>
-
         <div class="card" style="margin-top:1rem">
           <h3 style="margin:.2rem 0">Quick Stats</h3>
           <div style="display:flex;gap:1rem;flex-wrap:wrap">
@@ -187,38 +251,66 @@
     <div class="card">
       <h2 style="margin:.2rem 0">Tasks</h2>
       <div class="muted">Add tasks, set priority, time slots. Active / Completed sections update automatically.</div>
-      <div style="display:flex;gap:.6rem;margin-top:.8rem;flex-wrap:wrap">
+      <div class="form-row task-form-inputs" style="align-items: center;">
         <input id="newTaskTitle" placeholder="Task title">
         <input id="newTaskDesc" placeholder="Description">
-        <select id="taskPriority">
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-        </select>
-        <select id="taskCategory">
-          <option value="personal">Personal</option>
-          <option value="work">Work</option>
-          <option value="study">Study</option>
-          <option value="health">Health</option>
-        </select>
+        <select id="taskPriority"> <option value="low">Low</option> <option value="medium">Medium</option> <option value="high">High</option> </select>
+        <select id="taskCategory"> <option value="personal">Personal</option> <option value="work">Work</option> <option value="study">Study</option> <option value="health">Health</option> </select>
         <input id="taskStartTime" type="time" title="Start">
         <input id="taskEndTime" type="time" title="End">
         <button class="btn" onclick="addNewTask()"><i class="fas fa-plus"></i> Add Task</button>
+        <button class="btn ghost" id="breakdownBtn"><i class="fas fa-cogs"></i> ✨ Break Down</button>
       </div>
     </div>
-
-    <div style="display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap">
-      <div class="card col" style="min-width:300px">
+    <div class="tasks-layout">
+      <div class="card col">
         <h3 style="margin:.2rem 0">Active Tasks</h3>
         <div id="activeTasks" style="display:flex;flex-direction:column;gap:.6rem"></div>
       </div>
-
-      <div class="card col" style="min-width:300px">
+      <div class="card col">
         <h3 style="margin:.2rem 0">Completed Tasks</h3>
         <div id="completedTasks" style="display:flex;flex-direction:column;gap:.6rem"></div>
       </div>
     </div>
   </section>
+  
+  <!-- Targets Section -->
+    <section id="targetsSection" class="section">
+        <h2 style="margin:.2rem 0">Target Setting</h2>
+        <div class="muted">Set your goals for the week, month, and year to stay on track.</div>
+        
+        <div style="display: grid; grid-template-columns: 1fr; gap: 1rem; margin-top: 1rem;">
+            <!-- Weekly Targets -->
+            <div class="card">
+                <h3 style="margin:.2rem 0">This Week's Targets</h3>
+                <div class="form-row">
+                    <input id="newWeeklyTarget" placeholder="e.g., Complete project proposal">
+                    <button class="btn" onclick="addTarget('week')"><i class="fas fa-plus"></i> Add</button>
+                </div>
+                <div id="weeklyTargetsList" style="margin-top: 1rem; display: flex; flex-direction: column; gap: .6rem;"></div>
+            </div>
+
+            <!-- Monthly Targets -->
+            <div class="card">
+                <h3 style="margin:.2rem 0">This Month's Targets</h3>
+                <div class="form-row">
+                    <input id="newMonthlyTarget" placeholder="e.g., Read two books">
+                    <button class="btn" onclick="addTarget('month')"><i class="fas fa-plus"></i> Add</button>
+                </div>
+                <div id="monthlyTargetsList" style="margin-top: 1rem; display: flex; flex-direction: column; gap: .6rem;"></div>
+            </div>
+
+            <!-- Yearly Targets -->
+            <div class="card">
+                <h3 style="margin:.2rem 0">This Year's Targets</h3>
+                <div class="form-row">
+                    <input id="newYearlyTarget" placeholder="e.g., Learn a new skill">
+                    <button class="btn" onclick="addTarget('year')"><i class="fas fa-plus"></i> Add</button>
+                </div>
+                <div id="yearlyTargetsList" style="margin-top: 1rem; display: flex; flex-direction: column; gap: .6rem;"></div>
+            </div>
+        </div>
+    </section>
 
   <!-- Dashboard -->
   <section id="dashboardSection" class="section">
@@ -231,39 +323,16 @@
       </div>
       <div class="muted">XP: <span id="xpPoints">0</span></div>
     </div>
-
     <div class="summary-cards" style="margin-top:.6rem">
-      <div class="summary-card">
-        <div class="muted">Total Study (selected)</div>
-        <div id="selStudy" style="font-weight:800">0 hrs</div>
-      </div>
-      <div class="summary-card">
-        <div class="muted">Total Workout (selected)</div>
-        <div id="selWorkout" style="font-weight:800">0 min</div>
-      </div>
-      <div class="summary-card">
-        <div class="muted">Tasks Completed (selected)</div>
-        <div id="selTasks" style="font-weight:800">0</div>
-      </div>
-      <div class="summary-card">
-        <div class="muted">Current Streak</div>
-        <div id="selStreak" style="font-weight:800">0</div>
-      </div>
+      <div class="summary-card"> <div class="muted">Total Study (selected)</div> <div id="selStudy" style="font-weight:800">0 hrs</div> </div>
+      <div class="summary-card"> <div class="muted">Total Workout (selected)</div> <div id="selWorkout" style="font-weight:800">0 min</div> </div>
+      <div class="summary-card"> <div class="muted">Tasks Completed (selected)</div> <div id="selTasks" style="font-weight:800">0</div> </div>
+      <div class="summary-card"> <div class="muted">Current Streak</div> <div id="selStreak" style="font-weight:800">0</div> </div>
     </div>
-
     <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem">
-      <div class="chart-wrap" style="flex:1;min-width:300px">
-        <h4 style="margin:.2rem 0">Study Hours (day-wise)</h4>
-        <canvas id="chartStudy" height="120"></canvas>
-      </div>
-      <div class="chart-wrap" style="flex:1;min-width:300px">
-        <h4 style="margin:.2rem 0">Workout Minutes (day-wise)</h4>
-        <canvas id="chartWorkout" height="120"></canvas>
-      </div>
-      <div class="chart-wrap" style="flex:1;min-width:300px">
-        <h4 style="margin:.2rem 0">Tasks Completed (day-wise)</h4>
-        <canvas id="chartTasks" height="120"></canvas>
-      </div>
+      <div class="chart-wrap" style="flex:1;min-width:300px"> <h4 style="margin:.2rem 0">Study Hours (day-wise)</h4> <canvas id="chartStudy" height="120"></canvas> </div>
+      <div class="chart-wrap" style="flex:1;min-width:300px"> <h4 style="margin:.2rem 0">Workout Minutes (day-wise)</h4> <canvas id="chartWorkout" height="120"></canvas> </div>
+      <div class="chart-wrap" style="flex:1;min-width:300px"> <h4 style="margin:.2rem 0">Tasks Completed (day-wise)</h4> <canvas id="chartTasks" height="120"></canvas> </div>
     </div>
   </section>
 
@@ -275,46 +344,64 @@
       <button class="btn small" onclick="updateAnalytics('monthly')">Monthly</button>
       <button class="btn small" onclick="updateAnalytics('yearly')">Yearly</button>
     </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-      <div class="chart-wrap">
-        <h4 style="margin:.2rem 0">Study Hours by Category</h4>
-        <canvas id="chartStudyByCat" height="140"></canvas>
-      </div>
-      <div class="chart-wrap">
-        <h4 style="margin:.2rem 0">Task Completion Trend</h4>
-        <canvas id="chartTaskTrend" height="140"></canvas>
-      </div>
-
-      <div class="chart-wrap">
-        <h4 style="margin:.2rem 0">Sleep Patterns (Sleep vs Wake hour)</h4>
-        <canvas id="chartSleep" height="140"></canvas>
-      </div>
-
-      <div class="chart-wrap">
-        <h4 style="margin:.2rem 0">Workout Distribution</h4>
-        <canvas id="chartWorkoutDist" height="140"></canvas>
-      </div>
+    <div class="analytics-grid">
+      <div class="chart-wrap"> <h4 style="margin:.2rem 0">Study Hours by Category</h4> <canvas id="chartStudyByCat" height="140"></canvas> </div>
+      <div class="chart-wrap"> <h4 style="margin:.2rem 0">Task Completion Trend</h4> <canvas id="chartTaskTrend" height="140"></canvas> </div>
+      <div class="chart-wrap"> <h4 style="margin:.2rem 0">Sleep Patterns (Sleep vs Wake hour)</h4> <canvas id="chartSleep" height="140"></canvas> </div>
+      <div class="chart-wrap"> <h4 style="margin:.2rem 0">Workout Distribution</h4> <canvas id="chartWorkoutDist" height="140"></canvas> </div>
     </div>
   </section>
+
+  <!-- AI Chat Section -->
+  <section id="chatSection" class="section">
+    <div class="card">
+        <h2 style="margin:.2rem 0">✨ AI Assistant</h2>
+        <div class="muted">Get help from Gemini to create personalized study, workout, or work plans.</div>
+        <div id="chatMessages" style="height: 50vh; max-height: 500px; overflow-y: auto; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 1rem; margin-top: 1rem; display: flex; flex-direction: column; gap: 1rem;">
+            <!-- Chat messages will be appended here by JavaScript -->
+        </div>
+        <div class="filters" style="margin-top: 1rem; justify-content: center;">
+            <button class="btn small ghost" onclick="useSuggestion('Create a balanced study plan for next week')">Weekly Study Plan</button>
+            <button class="btn small ghost" onclick="useSuggestion('Give me a 5-day workout routine for this month')">Monthly Workout Plan</button>
+            <button class="btn small ghost" onclick="useSuggestion('Help me plan my work tasks for tomorrow')">Plan Tomorrow's Work</button>
+        </div>
+        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+            <input id="chatInput" type="text" placeholder="Ask for a plan..." style="flex: 1;">
+            <button id="sendChatBtn" class="btn"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+  </section>
+
 </div>
 
 <div id="toast" class="toast"></div>
+
+<!-- AI Modal -->
+<div id="aiModal" class="modal">
+  <div class="modal-content">
+    <span id="closeModal" class="close-modal">&times;</span>
+    <h3 id="modalTitle">Suggested Sub-tasks</h3>
+    <div id="modalContent" style="max-height: 40vh; overflow-y: auto;"></div>
+     <button class="btn" id="modalActionBtn" style="margin-top: 1rem;">Close</button>
+  </div>
+</div>
 
 <nav class="bottom-nav" aria-hidden="false">
   <div class="bottom-nav-inner" role="navigation">
     <div class="nav-item active" data-target="homeSection" onclick="showSection('homeSection', this)"><i class="fas fa-home"></i>Home</div>
     <div class="nav-item" data-target="tasksSection" onclick="showSection('tasksSection', this)"><i class="fas fa-tasks"></i>Tasks</div>
+    <div class="nav-item" data-target="targetsSection" onclick="showSection('targetsSection', this)"><i class="fas fa-bullseye"></i>Targets</div>
     <div class="nav-item" data-target="dashboardSection" onclick="showSection('dashboardSection', this)"><i class="fas fa-chart-line"></i>Dashboard</div>
     <div class="nav-item" data-target="analyticsSection" onclick="showSection('analyticsSection', this)"><i class="fas fa-chart-pie"></i>Analytics</div>
+    <div class="nav-item" data-target="chatSection" onclick="showSection('chatSection', this)"><i class="fas fa-comments"></i>AI Chat</div>
   </div>
 </nav>
 
 <script>
 /*
   Productivity Tracker - single file app
-  - Fixed broken structure and added full functionality
-  - All data stored day-wise using keys: prefix + type + _YYYY-MM-DD
+  - Features: Study, Workout, Task, Sleep logging, Target Setting
+  - Added Gemini AI for task breakdown, motivation, and chat-based planning
 */
 
 const STORAGE_PREFIX = 'prodtrk_';
@@ -324,6 +411,10 @@ const MAX_SESSION_STUDY = 12;
 let charts = {};
 let currentDashboardRange = 'weekly';
 let currentAnalyticsRange = 'weekly';
+let notificationInterval = null;
+let chatHistory = [];
+
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
 
 function $(id){ return document.getElementById(id); }
 
@@ -336,6 +427,7 @@ function showSection(id, el){
   if(id==='analyticsSection') updateAnalytics(currentAnalyticsRange);
   if(id==='homeSection') loadHomeQuickStats();
   if(id==='tasksSection') loadTasks();
+  if(id==='targetsSection') loadTargets();
 }
 
 /* ====== Helper: Date keys & ranges ====== */
@@ -346,35 +438,20 @@ function datePlusDays(baseDateISO, offset){
   return d.toISOString().split('T')[0];
 }
 function formatDateLabel(iso){ const d=new Date(iso); return `${d.getMonth()+1}/${d.getDate()}`; }
-
 function getRangeDays(range){
   const today = new Date();
   let days = [];
-  if(range==='weekly'){
-    for(let i=6;i>=0;i--) days.push(datePlusDays(todayISO(), -i));
-  } else if(range==='monthly'){
-    const d = new Date();
-    const daysInMonth = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
-    for(let i=daysInMonth-1;i>=0;i--) days.push(datePlusDays(d.toISOString().split('T')[0], -i));
-  } else { // yearly: monthly buckets
-    for(let m=0;m<12;m++){
-      const d = new Date();
-      d.setMonth(m); d.setDate(1);
-      days.push(d.toISOString().slice(0,7)); // YYYY-MM
-    }
-  }
+  if(range==='weekly'){ for(let i=6;i>=0;i--) days.push(datePlusDays(todayISO(), -i)); } 
+  else if(range==='monthly'){ const d = new Date(); const daysInMonth = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate(); for(let i=daysInMonth-1;i>=0;i--) days.push(datePlusDays(d.toISOString().split('T')[0], -i)); } 
+  else { for(let m=0;m<12;m++){ const d = new Date(); d.setMonth(m); d.setDate(1); days.push(d.toISOString().slice(0,7)); } }
   return days;
 }
 
 /* ====== LocalStorage helpers ====== */
-function read(key, fallback=null){
-  try{ const v = localStorage.getItem(STORAGE_PREFIX + key); return v ? JSON.parse(v) : fallback; } catch(e){ return fallback; }
-}
-function write(key, val){
-  localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(val));
-}
+function read(key, fallback=null){ try{ const v = localStorage.getItem(STORAGE_PREFIX + key); return v ? JSON.parse(v) : fallback; } catch(e){ return fallback; } }
+function write(key, val){ localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(val)); }
 
-/* ====== Toast & Notifications ====== */
+/* ====== Toast ====== */
 let toastTimer=null;
 function showToast(msg, timeout=2200){
   const t = $('toast');
@@ -383,322 +460,466 @@ function showToast(msg, timeout=2200){
   clearTimeout(toastTimer);
   toastTimer = setTimeout(()=> t.style.display='none', timeout);
 }
-function requestNotificationPermission(){
-  if("Notification" in window && Notification.permission!=='granted') Notification.requestPermission();
+
+/* ====== Gemini API Integration ====== */
+function getApiKey(){ return read('gemini_api_key'); }
+function saveApiKey(){ const key = $('apiKeyInput').value.trim(); if (key) { write('gemini_api_key', key); showToast('API Key saved!'); } else { showToast('Please enter a valid API Key.'); } }
+function saveApiKeyOnEnter(event) { if (event.key === 'Enter') { saveApiKey(); } }
+
+async function callGemini(prompt, buttonElement = null, retries = 3, delay = 1000) {
+    const apiKey = getApiKey();
+    if (!apiKey) { showToast('Please enter and save your Gemini API Key first.'); return null; }
+    const originalButtonHTML = buttonElement ? buttonElement.innerHTML : '';
+    if (buttonElement) { buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
+    const payload = { contents: [{ parts: [{ text: prompt }] }], };
+    for (let i = 0; i < retries; i++) {
+        try {
+            const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (!response.ok) { const error = await response.json(); throw new Error(error.error ? error.error.message : `HTTP error! status: ${response.status}`); }
+            const result = await response.json();
+            return result.candidates?.[0]?.content?.parts?.[0]?.text || null;
+        } catch (error) {
+            console.error('Gemini API call failed:', error);
+            if (i === retries - 1) { showToast(`AI request failed. Check console for details.`); return null; }
+            await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+        } finally {
+            if (buttonElement) { buttonElement.disabled = false; buttonElement.innerHTML = originalButtonHTML; }
+        }
+    }
+    return null;
+}
+
+async function getDailyMotivation() {
+    const study = totalStudyForDay(todayISO());
+    const today = todayISO();
+    const tasks = getTasks().filter(t => t.completed && t.completedAt && t.completedAt.startsWith(today)).length;
+    let context = "The user hasn't logged any activity yet today.";
+    if (study > 0 && tasks > 0) { context = `The user has studied for ${study.toFixed(1)} hours and completed ${tasks} tasks today.`; } 
+    else if (study > 0) { context = `The user has studied for ${study.toFixed(1)} hours today.`; } 
+    else if (tasks > 0) { context = `The user has completed ${tasks} tasks today.`; }
+    const prompt = `You are an encouraging productivity coach. Write a short, fresh, and powerful motivational quote for a user. Be inspiring and concise (1-2 sentences). Current user context: ${context}`;
+    const responseText = await callGemini(prompt, $('getMotivationBtn'));
+    if (responseText) { $('quotesContainer').textContent = responseText; }
+}
+
+async function breakDownTask() {
+    const mainTaskTitle = $('newTaskTitle').value.trim();
+    if (!mainTaskTitle) { showToast('Please enter a task title to break down.'); return; }
+    const prompt = `You are a productivity assistant. Break down the following task into a list of smaller, actionable sub-tasks. Return the response as a valid JSON array of strings. Do not include any other text, code formatting, or explanations, just the raw JSON array. Task: "${mainTaskTitle}"`;
+    const responseText = await callGemini(prompt, $('breakdownBtn'));
+    if (!responseText) return;
+    try {
+        const cleanedResponse = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        let subTasks = JSON.parse(cleanedResponse);
+        if (!Array.isArray(subTasks)) throw new Error("Response is not an array.");
+        const modalContent = $('modalContent');
+        modalContent.innerHTML = '';
+        if (subTasks.length === 0) { modalContent.innerHTML = '<p class="muted">AI could not break down this task further.</p>'; } 
+        else {
+            subTasks.forEach(taskText => {
+                const item = document.createElement('div');
+                item.className = 'subtask-item';
+                const text = document.createElement('span');
+                text.textContent = taskText;
+                item.appendChild(text);
+                const addButton = document.createElement('button');
+                addButton.className = 'btn small';
+                addButton.innerHTML = '<i class="fas fa-plus"></i> Add';
+                addButton.onclick = () => {
+                    const tasks = getTasks();
+                    tasks.push({ id: Date.now() + Math.floor(Math.random() * 999), title: taskText, description: `Sub-task of '${mainTaskTitle}'`, priority: 'low', category: 'personal', startTime: '', endTime: '', completed: false, createdAt: new Date().toISOString() });
+                    saveTasks(tasks);
+                    showToast(`Sub-task added.`);
+                    loadTasks();
+                    item.remove();
+                };
+                item.appendChild(addButton);
+                modalContent.appendChild(item);
+            });
+        }
+        $('modalTitle').textContent = `Sub-tasks for "${mainTaskTitle}"`;
+        $('modalActionBtn').onclick = () => $('aiModal').style.display = 'none';
+        $('aiModal').style.display = 'block';
+    } catch (e) {
+        console.error("Failed to parse AI response:", e, "Raw response:", responseText);
+        showToast("AI returned an invalid format. Please try again.");
+        $('modalContent').innerHTML = `<p class="muted">The AI response was not in the expected format. Here is the raw response:</p><pre style="white-space: pre-wrap; word-wrap: break-word;">${escapeHtml(responseText)}</pre>`;
+        $('modalTitle').textContent = `Response Error`;
+        $('modalActionBtn').onclick = () => $('aiModal').style.display = 'none';
+        $('aiModal').style.display = 'block';
+    }
+}
+
+/* ====== AI Chat Functions ====== */
+function parseMarkdown(text) {
+    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>');
+    text = text.replace(/^\s*[\*-]\s+(.*)$/gm, '<li>$1</li>');
+    text = text.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
+    text = text.replace(/\n/g, '<br>').replace(/<ul><br>/g, '<ul>').replace(/<br><\/ul>/g, '</ul>').replace(/<\/li><br>/g, '</li>');
+    return text;
+}
+
+function renderChat() {
+    const chatMessages = $('chatMessages');
+    chatMessages.innerHTML = '';
+    if (chatHistory.length === 0) {
+         const welcomeDiv = document.createElement('div');
+         welcomeDiv.className = 'chat-message chat-ai';
+         welcomeDiv.innerHTML = "Hello! I'm Gemini. How can I help you plan your week or month? You can ask for a study plan, a workout routine, or anything else you need to organize.";
+         chatMessages.appendChild(welcomeDiv);
+    }
+    chatHistory.forEach(msg => {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${msg.role === 'user' ? 'chat-user' : 'chat-ai'}`;
+        if(msg.typing) { messageDiv.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`; } 
+        else { messageDiv.innerHTML = parseMarkdown(escapeHtml(msg.text)); }
+        chatMessages.appendChild(messageDiv);
+    });
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+async function handleSendMessage() {
+    const input = $('chatInput');
+    const message = input.value.trim();
+    if (!message) return;
+    chatHistory.push({ role: 'user', text: message });
+    chatHistory.push({ role: 'ai', typing: true });
+    renderChat();
+    input.value = '';
+    const today = new Date();
+    const prompt = `You are a helpful and motivating productivity assistant named Gemini. Current context: The current time is ${today.toLocaleTimeString('en-US')} on ${today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. User's request: "${message}". Provide a helpful and structured response. If creating a plan, use markdown for lists and bolding for emphasis. Keep the tone encouraging.`;
+    const responseText = await callGemini(prompt, $('sendChatBtn'));
+    chatHistory.pop();
+    if (responseText) { chatHistory.push({ role: 'ai', text: responseText }); } 
+    else { chatHistory.push({ role: 'ai', text: "Sorry, I couldn't process that request. Please try again." }); }
+    renderChat();
+    saveChatHistory();
+}
+
+function useSuggestion(text) { $('chatInput').value = text; handleSendMessage(); }
+function loadChatHistory() { chatHistory = read('chat_history', []); renderChat(); }
+function saveChatHistory() { write('chat_history', chatHistory); }
+
+/* ====== NOTIFICATION SYSTEM ====== */
+function checkTaskReminders() {
+    if (Notification.permission !== 'granted') return;
+    const now = new Date();
+    const tasks = getTasks().filter(t => !t.completed && t.startTime && !t.notified);
+    tasks.forEach(task => {
+        const [hours, minutes] = task.startTime.split(':').map(Number);
+        const taskTime = new Date(); 
+        taskTime.setHours(hours, minutes, 0, 0);
+        const diffMinutes = (taskTime.getTime() - now.getTime()) / 1000 / 60;
+        if (diffMinutes <= 5 && diffMinutes > -2) {
+            new Notification('Upcoming Task Reminder', { body: `'${task.title}' is scheduled for ${task.startTime}.`, icon: 'https://placehold.co/96x96/2b7cff/ffffff?text=PT' });
+            markTaskAsNotified(task.id);
+        }
+    });
+}
+function markTaskAsNotified(id) {
+    let tasks = getTasks();
+    const taskIndex = tasks.findIndex(t => t.id === id);
+    if (taskIndex !== -1) { tasks[taskIndex].notified = true; saveTasks(tasks); }
+}
+function setupNotificationButton() {
+    const btn = $('notificationBtn');
+    if (!("Notification" in window)) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-bell-slash"></i> Not Supported'; return; }
+    const updateButtonState = () => {
+        if (Notification.permission === 'granted') { btn.innerHTML = '<i class="fas fa-bell"></i> Reminders On'; btn.classList.add('active'); btn.disabled = true; } 
+        else if (Notification.permission === 'denied') { btn.innerHTML = '<i class="fas fa-bell-slash"></i> Blocked'; btn.disabled = true; } 
+        else { btn.innerHTML = '<i class="fas fa-bell"></i> Enable Reminders'; btn.classList.remove('active'); }
+    };
+    btn.addEventListener('click', () => {
+        if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    showToast('Task reminders are now enabled!');
+                    checkTaskReminders();
+                    notificationInterval = setInterval(checkTaskReminders, 60000);
+                } else { showToast('Reminders permission denied.'); }
+                updateButtonState();
+            });
+        }
+    });
+    updateButtonState();
+    if (Notification.permission === 'granted') { if (notificationInterval) clearInterval(notificationInterval); notificationInterval = setInterval(checkTaskReminders, 60000); }
 }
 
 /* ====== Quotes (daily rotate) ====== */
-const QUOTES = [
-  "Small steps every day lead to big gains.",
-  "Focus on progress, not perfection.",
-  "Your future is created by what you do today.",
-  "Consistency beats intensity over time.",
-  "Do something today your future self will thank you for."
-];
-function setDailyQuote(){
-  const idx = new Date().toISOString().split('T')[0].split('-').join('') % QUOTES.length;
-  $('quotes').textContent = QUOTES[idx];
-}
+const QUOTES = [ "Small steps every day lead to big gains.", "Focus on progress, not perfection.", "Your future is created by what you do today.", "Consistency beats intensity over time.", "Do something today your future self will thank you for." ];
+function setDailyQuote(){ const idx = new Date().toISOString().split('T')[0].split('-').join('') % QUOTES.length; $('todayQuote').textContent = QUOTES[idx]; }
 
-/* ====== Study Logging ====== */
-function getStudyForDay(dayISO){
-  return read('study_' + dayISO, []);
-}
+/* ====== Data Logging Functions (Study, Workout, Sleep, Tasks) ====== */
+function getStudyForDay(dayISO){ return read('study_' + dayISO, []); }
 function saveStudyForDay(dayISO, arr){ write('study_' + dayISO, arr); }
-
-function totalStudyForDay(dayISO){
-  const arr = getStudyForDay(dayISO);
-  return arr.reduce((s,x)=>s+(parseFloat(x.hours)||0),0);
-}
-
+function totalStudyForDay(dayISO){ return getStudyForDay(dayISO).reduce((s,x)=>s+(parseFloat(x.hours)||0),0); }
 function logStudy(){
   const hoursInput = parseFloat($('studyHours').value || 0);
   const category = $('studyCategory').value;
   if(!hoursInput || hoursInput<=0){ showToast('Enter valid study hours'); return; }
   if(hoursInput>MAX_SESSION_STUDY){ showToast(`Session max ${MAX_SESSION_STUDY} hrs`); return; }
-
-  const today = todayISO();
-  let todayTotal = totalStudyForDay(today);
+  const today = todayISO(); let todayTotal = totalStudyForDay(today);
   if(todayTotal + hoursInput > MAX_DAILY_STUDY){
     showToast('Daily total capped at 24 hrs. Logging adjusted.');
-    // cap to max possible without exceeding 24
     const allowed = Math.max(0, MAX_DAILY_STUDY - todayTotal);
     if(allowed <= 0) return;
-    // adjust to allowed
     const entry = { hours: allowed, category, ts: new Date().toISOString() };
-    const arr = getStudyForDay(today);
-    arr.push(entry);
-    saveStudyForDay(today, arr);
-    $('studyHours').value='';
+    const arr = getStudyForDay(today); arr.push(entry); saveStudyForDay(today, arr); $('studyHours').value='';
     showToast(`${allowed} hr ${category} added (capped)`);
-    updateDashboard(currentDashboardRange); updateChartsOnDataChange();
-    return;
+    updateDashboard(currentDashboardRange); updateChartsOnDataChange(); return;
   }
-
   const entry = { hours: hoursInput, category, ts: new Date().toISOString() };
-  const arr = getStudyForDay(today);
-  arr.push(entry);
-  saveStudyForDay(today, arr);
-  $('studyHours').value='';
+  const arr = getStudyForDay(today); arr.push(entry); saveStudyForDay(today, arr); $('studyHours').value='';
   showToast(`${hoursInput} hr ${category} added! Great job!`);
   addXP(Math.round(hoursInput*20));
   updateDashboard(currentDashboardRange); updateChartsOnDataChange();
 }
-
-/* ====== Workouts ====== */
 function getWorkoutForDay(dayISO){ return read('workouts_' + dayISO, []); }
 function saveWorkoutForDay(dayISO, arr){ write('workouts_' + dayISO, arr); }
 function totalWorkoutForDay(dayISO){ return getWorkoutForDay(dayISO).reduce((s,x)=>s+(parseInt(x.mins)||0),0); }
-
 function logWorkout(){
   const mins = parseInt($('workoutMins').value || 0);
   if(!mins || mins<=0){ showToast('Enter workout minutes'); return; }
-  const today = todayISO();
-  const arr = getWorkoutForDay(today);
+  const today = todayISO(); const arr = getWorkoutForDay(today);
   arr.push({ mins, ts: new Date().toISOString() });
-  saveWorkoutForDay(today, arr);
-  $('workoutMins').value='';
-  showToast(`${mins} min workout added!`);
-  addXP(Math.round(mins/6)); // small XP
+  saveWorkoutForDay(today, arr); $('workoutMins').value='';
+  showToast(`${mins} min workout added!`); addXP(Math.round(mins/6));
   updateDashboard(currentDashboardRange); updateChartsOnDataChange();
 }
-
-/* ====== Sleep Logging ====== */
 function getSleepForDay(dayISO){ return read('sleep_' + dayISO, null); }
 function saveSleepForDay(dayISO, obj){ write('sleep_' + dayISO, obj); }
-
 function logSleep(){
-  const sleep = $('sleepTime').value;
-  const wake = $('wakeTime').value;
+  const sleep = $('sleepTime').value; const wake = $('wakeTime').value;
   if(!sleep || !wake){ showToast('Select both sleep and wake times'); return; }
-  const today = todayISO();
-  saveSleepForDay(today, { sleep, wake, ts: new Date().toISOString() });
+  saveSleepForDay(todayISO(), { sleep, wake, ts: new Date().toISOString() });
   $('sleepTime').value=''; $('wakeTime').value='';
-  showToast('Sleep times saved');
-  updateSleepInfo();
-  updateChartsOnDataChange();
+  showToast('Sleep times saved'); updateSleepInfo(); updateChartsOnDataChange();
 }
-
 function updateSleepInfo(){
-  const today = todayISO();
-  const s = getSleepForDay(today);
+  const s = getSleepForDay(todayISO());
   if(!s){ $('sleepInfo').textContent='No sleep data for today'; return; }
-  const sl = s.sleep, wk = s.wake;
-  const sleepDate = new Date(`${today}T${sl}`);
-  let wakeDate = new Date(`${today}T${wk}`);
+  const sleepDate = new Date(`${todayISO()}T${s.sleep}`); let wakeDate = new Date(`${todayISO()}T${s.wake}`);
   if(wakeDate <= sleepDate) wakeDate.setDate(wakeDate.getDate()+1);
   const diff = (wakeDate - sleepDate)/3600000;
-  $('sleepInfo').textContent = `Sleep: ${sl} — Wake: ${wk} — Duration: ${diff.toFixed(2)} hrs`;
+  $('sleepInfo').textContent = `Sleep: ${s.sleep} — Wake: ${s.wake} — Duration: ${diff.toFixed(2)} hrs`;
 }
-
-/* ====== Tasks ====== */
-function getTasksForDay(dayISO){ return read('tasks_' + dayISO, []); }
-function saveTasksForDay(dayISO, arr){ write('tasks_' + dayISO, arr); }
+function getTasks(){ return read('tasks', []); }
+function saveTasks(arr){ write('tasks', arr); }
 function addNewTask(){
   const title = $('newTaskTitle').value.trim();
-  const description = $('newTaskDesc').value.trim();
-  const priority = $('taskPriority').value;
-  const category = $('taskCategory').value;
-  const startTime = $('taskStartTime').value;
-  const endTime = $('taskEndTime').value;
-
   if(!title){ showToast('Enter a task title'); return; }
-  if(startTime && endTime && startTime >= endTime){ showToast('End time must be after start time'); return; }
-
-  const today = todayISO();
-  const tasks = getTasksForDay(today);
-  const id = Date.now() + Math.floor(Math.random()*999);
-  const t = { id, title, description, priority, category, startTime, endTime, completed:false, createdAt: new Date().toISOString() };
-  tasks.push(t);
-  saveTasksForDay(today, tasks);
-
-  // clear inputs
-  $('newTaskTitle').value=''; $('newTaskDesc').value=''; $('taskPriority').value='low';
-  $('taskCategory').value='personal'; $('taskStartTime').value=''; $('taskEndTime').value='';
-
-  showToast('Task added');
-  updateDashboard(currentDashboardRange); loadTasks(); updateChartsOnDataChange();
+  if($('taskStartTime').value && $('taskEndTime').value && $('taskStartTime').value >= $('taskEndTime').value){ showToast('End time must be after start time'); return; }
+  const tasks = getTasks();
+  tasks.push({ id: Date.now() + Math.floor(Math.random()*999), title, description: $('newTaskDesc').value.trim(), priority: $('taskPriority').value, category: $('taskCategory').value, startTime: $('taskStartTime').value, endTime: $('taskEndTime').value, completed:false, createdAt: new Date().toISOString() });
+  saveTasks(tasks);
+  $('newTaskTitle').value=''; $('newTaskDesc').value=''; $('taskPriority').value='low'; $('taskCategory').value='personal'; $('taskStartTime').value=''; $('taskEndTime').value='';
+  showToast('Task added'); updateDashboard(currentDashboardRange); loadTasks(); updateChartsOnDataChange();
 }
-
 function addQuickTask(){
   const title = $('quickTaskTitle').value.trim();
-  const time = $('quickTaskTime').value;
-  const duration = parseInt($('quickTaskDuration').value || 0);
   if(!title){ showToast('Enter quick task title'); return; }
-  const today = todayISO();
-  const tasks = getTasksForDay(today);
-  const id = Date.now() + Math.floor(Math.random()*999);
+  const tasks = getTasks();
+  const time = $('quickTaskTime').value; const duration = parseInt($('quickTaskDuration').value || 0);
   const endTime = time && duration ? addDurationToTime(time,duration) : '';
-  tasks.push({ id, title, description:'', priority:'low', category:'quick', startTime: time||'', endTime, completed:false, createdAt:new Date().toISOString() });
-  saveTasksForDay(today, tasks);
+  tasks.push({ id: Date.now() + Math.floor(Math.random()*999), title, description:'', priority:'low', category:'quick', startTime: time||'', endTime, completed:false, createdAt:new Date().toISOString() });
+  saveTasks(tasks);
   $('quickTaskTitle').value=''; $('quickTaskTime').value=''; $('quickTaskDuration').value='';
-  showToast('Quick task added');
-  loadTasks(); updateDashboard(currentDashboardRange); updateChartsOnDataChange();
+  showToast('Quick task added'); loadTasks(); updateDashboard(currentDashboardRange); updateChartsOnDataChange();
 }
 function addDurationToTime(timeStr, mins){
   const [hh,mm] = timeStr.split(':').map(Number);
   const dt = new Date(); dt.setHours(hh); dt.setMinutes(mm+mins);
-  const hh2 = String(dt.getHours()).padStart(2,'0'), mm2 = String(dt.getMinutes()).padStart(2,'0');
-  return `${hh2}:${mm2}`;
+  return `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
 }
-
 function loadTasks(){
-  const today = todayISO();
-  const tasks = getTasksForDay(today);
-  const active = tasks.filter(t=>!t.completed).sort((a,b)=>a.createdAt<b.createdAt?1:-1);
-  const completed = tasks.filter(t=>t.completed).sort((a,b)=>b.completedAt?b.completedAt-a.completedAt:0);
+  let tasks = getTasks();
+  // Data sanitization: Filter out any malformed tasks that might have been saved due to a bug.
+  const originalCount = tasks.length;
+  tasks = tasks.filter(t => t && typeof t.title === 'string' && t.id != null);
+  if (tasks.length < originalCount) { saveTasks(tasks); } // Resave the cleaned array if anything was removed.
 
+  const priorityOrder = { high: 0, medium: 1, low: 2 };
+  
+  const active = tasks.filter(t=>!t.completed).sort((a,b)=> {
+      const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+      if (priorityDiff !== 0) return priorityDiff;
+      return new Date(b.createdAt) - new Date(a.createdAt); // newest first
+  });
+  
+  const completed = tasks.filter(t=>t.completed).sort((a,b)=>(b.completedAt && a.completedAt) ? new Date(b.completedAt) - new Date(a.completedAt) : 0);
+  
   const activeCont = $('activeTasks'); const compCont = $('completedTasks');
-  activeCont.innerHTML=''; compCont.innerHTML='';
-
-  if(active.length===0) activeCont.innerHTML='<div class="muted">No active tasks</div>';
-  if(completed.length===0) compCont.innerHTML='<div class="muted">No completed tasks</div>';
-
-  active.forEach(t=>{
-    const div = document.createElement('div'); div.className='task-item';
-    div.innerHTML = `
-      <input type="checkbox" class="task-checkbox" ${t.completed ? 'checked':''} onchange="toggleTask(${t.id}, false)">
-      <div style="flex:1">
-        <div style="font-weight:700">${escapeHtml(t.title)}</div>
-        ${t.description? `<div class="muted">${escapeHtml(t.description)}</div>` : ''}
-        <div class="task-meta">
-          <span><i class="fas fa-tag"></i> ${escapeHtml(t.category)}</span>
-          <span class="priority-${t.priority}"><i class="fas fa-flag"></i> ${t.priority}</span>
-          ${t.startTime ? `<span><i class="fas fa-clock"></i> ${t.startTime}${t.endTime? ' - '+t.endTime:''}</span>` : ''}
-        </div>
+  activeCont.innerHTML= active.length===0 ? '<div class="muted">No active tasks</div>' : active.map(t => `
+    <div class="task-item">
+      <input type="checkbox" class="task-checkbox" onchange="toggleTask(${t.id}, false)">
+      <div style="flex:1"> <div style="font-weight:700">${escapeHtml(t.title)}</div> ${t.description? `<div class="muted">${escapeHtml(t.description)}</div>` : ''}
+        <div class="task-meta"> <span><i class="fas fa-tag"></i> ${escapeHtml(t.category)}</span> <span class="priority-${t.priority}"><i class="fas fa-flag"></i> ${t.priority}</span> ${t.startTime ? `<span><i class="fas fa-clock"></i> ${t.startTime}${t.endTime? ' - '+t.endTime:''}</span>` : ''} </div>
       </div>
-      <div class="task-actions">
-        <button title="Complete" class="btn small" onclick="toggleTask(${t.id}, true)"><i class="fas fa-check"></i></button>
-        <button title="Delete" class="btn small ghost" onclick="deleteTask(${t.id})"><i class="fas fa-trash"></i></button>
-      </div>
-    `;
-    activeCont.appendChild(div);
-  });
-
-  completed.forEach(t=>{
-    const div = document.createElement('div'); div.className='task-item task-completed';
-    div.innerHTML = `
+      <div class="task-actions"> <button title="Complete" class="btn small" onclick="toggleTask(${t.id}, true)"><i class="fas fa-check"></i></button> <button title="Delete" class="btn small ghost" onclick="deleteTask(${t.id})"><i class="fas fa-trash"></i></button> </div>
+    </div>`).join('');
+  compCont.innerHTML= completed.length===0 ? '<div class="muted">No completed tasks</div>' : completed.map(t => `
+    <div class="task-item task-completed">
       <input type="checkbox" class="task-checkbox" checked onchange="toggleTask(${t.id}, false)">
-      <div style="flex:1">
-        <div style="font-weight:700">${escapeHtml(t.title)}</div>
-        ${t.description? `<div class="muted">${escapeHtml(t.description)}</div>` : ''}
-        <div class="task-meta">
-          <span><i class="fas fa-tag"></i> ${escapeHtml(t.category)}</span>
-          ${t.startTime ? `<span><i class="fas fa-clock"></i> ${t.startTime}${t.endTime? ' - '+t.endTime:''}</span>` : ''}
-          <span class="muted">Completed</span>
-        </div>
+      <div style="flex:1"> <div style="font-weight:700">${escapeHtml(t.title)}</div>
+        <div class="task-meta"> <span><i class="fas fa-tag"></i> ${escapeHtml(t.category)}</span> <span class="muted">Completed</span> </div>
       </div>
-      <div class="task-actions">
-        <button title="Delete" class="btn small ghost" onclick="deleteTask(${t.id})"><i class="fas fa-trash"></i></button>
-      </div>
-    `;
-    compCont.appendChild(div);
-  });
-
+      <div class="task-actions"> <button title="Delete" class="btn small ghost" onclick="deleteTask(${t.id})"><i class="fas fa-trash"></i></button> </div>
+    </div>`).join('');
   updateTodayCompletedCount();
 }
-
 function toggleTask(id, markCompleted){
-  const today = todayISO();
-  const tasks = getTasksForDay(today);
-  const idx = tasks.findIndex(t=>t.id===id);
-  if(idx===-1) return;
-  if(markCompleted){
-    tasks[idx].completed = true;
-    tasks[idx].completedAt = new Date().toISOString();
-    showToast('Task completed');
-    addXP(8);
-  } else {
-    tasks[idx].completed = !tasks[idx].completed;
-    if(!tasks[idx].completed) delete tasks[idx].completedAt;
-    showToast(tasks[idx].completed ? 'Task completed' : 'Task marked active');
-  }
-  saveTasksForDay(today, tasks);
+  const tasks = getTasks();
+  const idx = tasks.findIndex(t=>t.id===id); if(idx===-1) return;
+  if(markCompleted){ tasks[idx].completed = true; tasks[idx].completedAt = new Date().toISOString(); showToast('Task completed'); addXP(8); } 
+  else { tasks[idx].completed = !tasks[idx].completed; if(!tasks[idx].completed) delete tasks[idx].completedAt; showToast(tasks[idx].completed ? 'Task completed' : 'Task marked active'); }
+  saveTasks(tasks);
   loadTasks(); updateDashboard(currentDashboardRange); updateChartsOnDataChange();
 }
-
 function deleteTask(id){
-  const today = todayISO();
-  let tasks = getTasksForDay(today);
+  let tasks = getTasks();
   tasks = tasks.filter(t=>t.id!==id);
-  saveTasksForDay(today, tasks);
-  showToast('Task deleted');
-  loadTasks(); updateDashboard(currentDashboardRange); updateChartsOnDataChange();
+  saveTasks(tasks);
+  showToast('Task deleted'); loadTasks(); updateDashboard(currentDashboardRange); updateChartsOnDataChange();
 }
 
-/* ====== XP & Streaks & Achievements (simple) ====== */
+/* ====== Target Functions ====== */
+function getTargets(){ return read('targets', []); }
+function saveTargets(arr){ write('targets', arr); }
+function isDateInCurrentWeek(dateStr) {
+    const date = new Date(dateStr);
+    const today = new Date();
+    const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+    const lastDayOfWeek = new Date(firstDayOfWeek);
+    lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 6);
+    return date >= firstDayOfWeek && date <= lastDayOfWeek;
+}
+function isDateInCurrentMonth(dateStr) {
+    const date = new Date(dateStr);
+    const today = new Date();
+    return date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
+}
+function isDateInCurrentYear(dateStr) {
+    const date = new Date(dateStr);
+    const today = new Date();
+    return date.getFullYear() === today.getFullYear();
+}
+function addTarget(period) {
+    let inputId;
+    switch (period) {
+        case 'week': inputId = 'newWeeklyTarget'; break;
+        case 'month': inputId = 'newMonthlyTarget'; break;
+        case 'year': inputId = 'newYearlyTarget'; break;
+        default: return;
+    }
+    const input = $(inputId);
+    if (!input) {
+        console.error(`Could not find input with ID: ${inputId}`);
+        return;
+    }
+    const text = input.value.trim();
+    if (!text) { showToast('Please enter a target.'); return; }
+    const targets = getTargets();
+    targets.push({ id: Date.now(), text: text, period: period, completed: false, createdAt: new Date().toISOString() });
+    saveTargets(targets);
+    input.value = '';
+    showToast(`${period.charAt(0).toUpperCase() + period.slice(1)} target added!`);
+    loadTargets();
+}
+function loadTargets() {
+    const allTargets = getTargets();
+    const weeklyList = $('weeklyTargetsList');
+    const monthlyList = $('monthlyTargetsList');
+    const yearlyList = $('yearlyTargetsList');
+    
+    const currentWeekTargets = allTargets.filter(t => t.period === 'week' && isDateInCurrentWeek(t.createdAt));
+    const currentMonthTargets = allTargets.filter(t => t.period === 'month' && isDateInCurrentMonth(t.createdAt));
+    const currentYearTargets = allTargets.filter(t => t.period === 'year' && isDateInCurrentYear(t.createdAt));
+    
+    const renderList = (targets, container) => {
+        if (targets.length === 0) {
+            container.innerHTML = `<div class="muted" style="text-align:center; padding: .5rem;">No targets set for this period.</div>`;
+            return;
+        }
+        container.innerHTML = targets.map(t => `
+            <div class="target-item ${t.completed ? 'target-completed' : ''}">
+                <input type="checkbox" class="target-checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTarget(${t.id})">
+                <div style="flex:1;">${escapeHtml(t.text)}</div>
+                <div class="target-actions">
+                    <button title="Delete" class="btn small ghost" onclick="deleteTarget(${t.id})"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `).join('');
+    };
+    
+    renderList(currentWeekTargets, weeklyList);
+    renderList(currentMonthTargets, monthlyList);
+    renderList(currentYearTargets, yearlyList);
+}
+function toggleTarget(id) {
+    let targets = getTargets();
+    const idx = targets.findIndex(t => t.id === id);
+    if (idx !== -1) {
+        targets[idx].completed = !targets[idx].completed;
+        if(targets[idx].completed) addXP(15);
+        saveTargets(targets);
+        loadTargets();
+    }
+}
+function deleteTarget(id) {
+    let targets = getTargets();
+    targets = targets.filter(t => t.id !== id);
+    saveTargets(targets);
+    showToast('Target deleted.');
+    loadTargets();
+}
+
+/* ====== XP & Streaks ====== */
 function getXP(){ return parseInt(read('xp',0) || 0); }
 function setXP(v){ write('xp', v); $('xpPoints').textContent = v; }
-function addXP(amount){
-  const cur = getXP();
-  setXP(cur + amount);
-}
-
+function addXP(amount){ setXP(getXP() + amount); }
 function updateStreak(){
-  // simple streak count: number of consecutive days with any logged activity up to today
   let streak = 0;
   for(let i=0;i<365;i++){
     const d = datePlusDays(todayISO(), -i);
-    const hasActivity = (getStudyForDay(d).length>0) || (getWorkoutForDay(d).length>0) || (getTasksForDay(d).length>0) || getSleepForDay(d);
-    if(hasActivity) streak++; else break;
+    const allTasks = getTasks();
+    const hasTaskActivity = allTasks.some(t => (t.createdAt && t.createdAt.startsWith(d)) || (t.completedAt && t.completedAt.startsWith(d)));
+    if((getStudyForDay(d).length>0) || (getWorkoutForDay(d).length>0) || hasTaskActivity || getSleepForDay(d)) streak++; else break;
   }
-  write('streak', streak);
-  $('streakCount').textContent = streak;
+  write('streak', streak); $('streakCount').textContent = streak;
 }
 
 /* ====== Dashboard & Charts ====== */
 function initCharts(){
-  // study
-  const ctxS = $('chartStudy').getContext('2d');
-  charts.study = new Chart(ctxS, { type:'line', data:{ labels:[], datasets:[{label:'Hours',data:[],borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,0.12)',tension:0.3}]}, options:{responsive:true,plugins:{legend:{display:false}}} });
-
-  // workout
-  const ctxW = $('chartWorkout').getContext('2d');
-  charts.workout = new Chart(ctxW, { type:'line', data:{ labels:[], datasets:[{label:'Minutes',data:[],borderColor:'#0ea5a4',backgroundColor:'rgba(14,165,164,0.12)',tension:0.3}]}, options:{responsive:true,plugins:{legend:{display:false}}} });
-
-  // tasks completed
-  const ctxT = $('chartTasks').getContext('2d');
-  charts.tasks = new Chart(ctxT, { type:'bar', data:{ labels:[], datasets:[{label:'Completed',data:[],backgroundColor:'#2b7cff'}]}, options:{responsive:true,plugins:{legend:{display:false}}} });
-
-  // analytics specific
-  const ctxSBC = $('chartStudyByCat').getContext('2d');
-  charts.studyByCat = new Chart(ctxSBC, { type:'bar', data:{ labels:[], datasets:[{label:'Hours',data:[],backgroundColor:'#2b7cff'}]}, options:{responsive:true} });
-
-  const ctxTaskTrend = $('chartTaskTrend').getContext('2d');
-  charts.taskTrend = new Chart(ctxTaskTrend, { type:'line', data:{ labels:[], datasets:[{label:'Completed',data:[],borderColor:'#06b6d4',backgroundColor:'rgba(6,182,212,0.12)'}]}, options:{responsive:true} });
-
-  const ctxSleep = $('chartSleep').getContext('2d');
-  charts.sleep = new Chart(ctxSleep, { type:'line', data:{ labels:[], datasets:[
-    {label:'Sleep hour',data:[],borderColor:'#8b5cf6',tension:0.3},
-    {label:'Wake hour',data:[],borderColor:'#f97316',tension:0.3}
-  ]}, options:{responsive:true,scales:{y:{min:0,max:24}}} });
-
-  const ctxWDist = $('chartWorkoutDist').getContext('2d');
-  charts.workoutDist = new Chart(ctxWDist, { type:'doughnut', data:{ labels:[], datasets:[{data:[],backgroundColor:['#2b7cff','#06b6d4','#8b5cf6','#f97316']}]}, options:{responsive:true} });
+  const chartConfigs = {
+    study: { type:'line', el: 'chartStudy', data: { datasets:[{label:'Hours',borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,0.12)',tension:0.3}]}, options:{plugins:{legend:{display:false}}} },
+    workout: { type:'line', el: 'chartWorkout', data: { datasets:[{label:'Minutes',borderColor:'#0ea5a4',backgroundColor:'rgba(14,165,164,0.12)',tension:0.3}]}, options:{plugins:{legend:{display:false}}} },
+    tasks: { type:'bar', el: 'chartTasks', data: { datasets:[{label:'Completed',backgroundColor:'#2b7cff'}]}, options:{plugins:{legend:{display:false}}} },
+    studyByCat: { type:'bar', el: 'chartStudyByCat', data: { datasets:[{label:'Hours',backgroundColor:'#2b7cff'}]} },
+    taskTrend: { type:'line', el: 'chartTaskTrend', data: { datasets:[{label:'Completed',borderColor:'#06b6d4',backgroundColor:'rgba(6,182,212,0.12)'}]} },
+    sleep: { type:'line', el: 'chartSleep', data: { datasets:[{label:'Sleep hour',borderColor:'#8b5cf6',tension:0.3}, {label:'Wake hour',borderColor:'#f97316',tension:0.3}]}, options:{scales:{y:{min:0,max:24}}} },
+    workoutDist: { type:'doughnut', el: 'chartWorkoutDist', data: { datasets:[{backgroundColor:['#2b7cff','#06b6d4','#8b5cf6','#f97316']}]} },
+  };
+  for(const key in chartConfigs){
+    const config = chartConfigs[key];
+    const ctx = $(config.el).getContext('2d');
+    charts[key] = new Chart(ctx, { type: config.type, data: { labels: [], datasets: config.data.datasets }, options: { responsive: true, ...config.options } });
+  }
 }
-
 function updateDashboard(range='weekly'){
   currentDashboardRange = range;
-  // compute day-wise arrays for labels and totals
-  let days = getRangeDays(range);
-  const labels = [];
-  const studyData = [], workoutData = [], tasksData = [];
+  let days = getRangeDays(range); let labels = [];
+  let studyData = [], workoutData = [], tasksData = [];
   let totalStudy=0, totalWorkout=0, totalTasks=0;
+  const allTasks = getTasks();
 
   if(range==='yearly'){
-    // months aggregated
     for(const month of days){
-      labels.push(month);
-      const yearmonth = month; // YYYY-MM
-      // gather days of that month
-      let sumStudy=0, sumWork=0, sumTasks=0;
-      const [y,m] = yearmonth.split('-');
-      const daysIn = new Date(y,parseInt(m),0).getDate();
+      labels.push(month); let sumStudy=0, sumWork=0, sumTasks=0;
+      const [y,m] = month.split('-'); const daysIn = new Date(y,parseInt(m),0).getDate();
       for(let d=1;d<=daysIn;d++){
-        const iso = `${yearmonth}-${String(d).padStart(2,'0')}`;
-        sumStudy += totalStudyForDay(iso);
-        sumWork += totalWorkoutForDay(iso);
-        sumTasks += getTasksForDay(iso).filter(t=>t.completed).length;
+        const iso = `${month}-${String(d).padStart(2,'0')}`;
+        sumStudy += totalStudyForDay(iso); sumWork += totalWorkoutForDay(iso);
+        sumTasks += allTasks.filter(t => t.completed && t.completedAt && t.completedAt.startsWith(iso)).length;
       }
       studyData.push(Number(sumStudy.toFixed(2))); workoutData.push(sumWork); tasksData.push(sumTasks);
       totalStudy+=sumStudy; totalWorkout+=sumWork; totalTasks+=sumTasks;
@@ -706,163 +927,98 @@ function updateDashboard(range='weekly'){
   } else {
     for(const day of days){
       labels.push(range==='monthly'? day.split('-')[2] : formatDateLabel(day));
-      studyData.push(Number(totalStudyForDay(day).toFixed(2)));
-      workoutData.push(totalWorkoutForDay(day));
-      tasksData.push(getTasksForDay(day).filter(t=>t.completed).length);
-      totalStudy += totalStudyForDay(day); totalWorkout += totalWorkoutForDay(day);
-      totalTasks += getTasksForDay(day).filter(t=>t.completed).length;
+      const s = totalStudyForDay(day); studyData.push(Number(s.toFixed(2))); totalStudy += s;
+      const w = totalWorkoutForDay(day); workoutData.push(w); totalWorkout += w;
+      const t = allTasks.filter(c => c.completed && c.completedAt && c.completedAt.startsWith(day)).length; tasksData.push(t); totalTasks += t;
     }
   }
-
-  // cap any unrealistic values
-  for(let i=0;i<studyData.length;i++){
-    if(studyData[i] > MAX_DAILY_STUDY){ studyData[i] = MAX_DAILY_STUDY; }
-  }
-
-  // update summary
   $('selStudy').textContent = `${Number(totalStudy.toFixed(2))} hrs`;
   $('selWorkout').textContent = `${totalWorkout} min`;
   $('selTasks').textContent = `${totalTasks}`;
   updateStreak(); $('selStreak').textContent = read('streak',0);
-
-  // update charts
-  if(charts.study){ charts.study.data.labels = labels; charts.study.data.datasets[0].data = studyData; charts.study.update(); }
-  if(charts.workout){ charts.workout.data.labels = labels; charts.workout.data.datasets[0].data = workoutData; charts.workout.update(); }
-  if(charts.tasks){ charts.tasks.data.labels = labels; charts.tasks.data.datasets[0].data = tasksData; charts.tasks.update(); }
+  charts.study.data.labels = labels; charts.study.data.datasets[0].data = studyData; charts.study.update();
+  charts.workout.data.labels = labels; charts.workout.data.datasets[0].data = workoutData; charts.workout.update();
+  charts.tasks.data.labels = labels; charts.tasks.data.datasets[0].data = tasksData; charts.tasks.update();
 }
-
-/* ====== Analytics updates ====== */
 function aggregateStudyByCategory(range){
   const days = getRangeDays(range);
   const categories = { 'College Study':0, 'Online Study':0, 'Self Study':0, 'Coding':0 };
+  const processDay = (day) => getStudyForDay(day).forEach(e => { if(categories[e.category]!==undefined) categories[e.category]+=Number(e.hours||0); });
   if(range==='yearly'){
-    // loop months -> days within
     for(const ym of days){
       const [y,m] = ym.split('-');
-      const daysInMonth = new Date(y,parseInt(m),0).getDate();
-      for(let d=1;d<=daysInMonth;d++){
-        const iso = `${ym}-${String(d).padStart(2,'0')}`;
-        const arr = getStudyForDay(iso);
-        arr.forEach(e => { if(categories[e.category]!==undefined) categories[e.category]+=Number(e.hours||0); });
-      }
+      for(let d=1;d<=new Date(y,parseInt(m),0).getDate();d++) processDay(`${ym}-${String(d).padStart(2,'0')}`);
     }
-  } else {
-    for(const day of days){
-      const arr = getStudyForDay(day);
-      arr.forEach(e => { if(categories[e.category]!==undefined) categories[e.category]+=Number(e.hours||0); });
-    }
-  }
+  } else { days.forEach(processDay); }
   return categories;
 }
-
 function updateAnalytics(range='weekly'){
   currentAnalyticsRange = range;
-  // study by category
   const categories = aggregateStudyByCategory(range);
   charts.studyByCat.data.labels = Object.keys(categories);
   charts.studyByCat.data.datasets[0].data = Object.values(categories).map(v=>Number(v.toFixed(2)));
   charts.studyByCat.update();
+  
+  const days = getRangeDays(range); let labels = []; let dataSets = {trend:[], sleepS:[], sleepW:[], workout:[]};
+  const allTasks = getTasks();
 
-  // task trend: completed per day
-  const days = getRangeDays(range);
-  const labels = []; const completed = [];
   if(range==='yearly'){
-    for(const m of days){
-      labels.push(m);
-      let cnt=0;
-      const [y,mm]=m.split('-');
-      const di = new Date(y,parseInt(mm),0).getDate();
-      for(let d=1;d<=di;d++){
-        cnt += getTasksForDay(`${m}-${String(d).padStart(2,'0')}`).filter(t=>t.completed).length;
-      }
-      completed.push(cnt);
-    }
-  } else {
-    for(const d of days){ labels.push(formatDateLabel(d)); completed.push(getTasksForDay(d).filter(t=>t.completed).length); }
-  }
-  charts.taskTrend.data.labels = labels; charts.taskTrend.data.datasets[0].data = completed; charts.taskTrend.update();
-
-  // sleep pattern: plot hour of sleep and wake average per day
-  const slabels = []; const sleepH=[]; const wakeH=[];
-  if(range==='yearly'){
-    for(const ym of days){
-      slabels.push(ym);
-      let accS=0,accW=0,cnt=0;
-      const [y,m] = ym.split('-');
-      const di = new Date(y,parseInt(m),0).getDate();
-      for(let d=1;d<=di;d++){
-        const iso = `${ym}-${String(d).padStart(2,'0')}`;
-        const s = getSleepForDay(iso);
-        if(s){ const sh = Number(s.sleep.split(':')[0]); const wh = Number(s.wake.split(':')[0]); accS+=sh; accW+=wh; cnt++; }
-      }
-      sleepH.push(cnt?Number((accS/cnt).toFixed(2)):null); wakeH.push(cnt?Number((accW/cnt).toFixed(2)):null);
-    }
+     for(const m of days){
+        labels.push(m); let trend=0, sS=0, sW=0, w=0, sCnt=0;
+        const [y,mm] = m.split('-');
+        for(let d=1;d<=new Date(y,parseInt(mm),0).getDate();d++){
+            const iso = `${m}-${String(d).padStart(2,'0')}`;
+            trend += allTasks.filter(t=> t.completed && t.completedAt && t.completedAt.startsWith(iso)).length;
+            const s = getSleepForDay(iso);
+            if(s){ sS+=Number(s.sleep.split(':')[0]); sW+=Number(s.wake.split(':')[0]); sCnt++; }
+            w += totalWorkoutForDay(iso);
+        }
+        dataSets.trend.push(trend); dataSets.sleepS.push(sCnt ? Number((sS/sCnt).toFixed(2)) : null);
+        dataSets.sleepW.push(sCnt ? Number((sW/sCnt).toFixed(2)) : null); dataSets.workout.push(w);
+     }
   } else {
     for(const d of days){
-      slabels.push(formatDateLabel(d));
-      const s = getSleepForDay(d);
-      if(s){ sleepH.push(Number(s.sleep.split(':')[0])); wakeH.push(Number(s.wake.split(':')[0])); } else { sleepH.push(null); wakeH.push(null); }
+        labels.push(formatDateLabel(d));
+        dataSets.trend.push(allTasks.filter(t=> t.completed && t.completedAt && t.completedAt.startsWith(d)).length);
+        const s = getSleepForDay(d);
+        dataSets.sleepS.push(s ? Number(s.sleep.split(':')[0]) : null);
+        dataSets.sleepW.push(s ? Number(s.wake.split(':')[0]) : null);
+        dataSets.workout.push(totalWorkoutForDay(d));
     }
   }
-  charts.sleep.data.labels = slabels;
-  charts.sleep.data.datasets[0].data = sleepH;
-  charts.sleep.data.datasets[1].data = wakeH;
-  charts.sleep.update();
-
-  // workout distribution (by day or total)
-  const wlabels = []; const wdata = [];
-  if(range==='yearly'){
-    for(const m of days){
-      let sum=0;
-      const [y,mm]=m.split('-'); const di = new Date(y,parseInt(mm),0).getDate();
-      for(let d=1;d<=di;d++) sum += totalWorkoutForDay(`${m}-${String(d).padStart(2,'0')}`);
-      wlabels.push(m); wdata.push(sum);
-    }
-  } else {
-    for(const d of days){ wlabels.push(formatDateLabel(d)); wdata.push(totalWorkoutForDay(d)); }
-  }
-  charts.workoutDist.data.labels = wlabels.slice(0,6);
-  charts.workoutDist.data.datasets[0].data = wdata.slice(0,6);
-  charts.workoutDist.update();
+  charts.taskTrend.data.labels = labels; charts.taskTrend.data.datasets[0].data = dataSets.trend; charts.taskTrend.update();
+  charts.sleep.data.labels = labels; charts.sleep.data.datasets[0].data = dataSets.sleepS; charts.sleep.data.datasets[1].data = dataSets.sleepW; charts.sleep.update();
+  charts.workoutDist.data.labels = labels.slice(0,6); charts.workoutDist.data.datasets[0].data = dataSets.workout.slice(0,6); charts.workoutDist.update();
 }
-
-function updateChartsOnDataChange(){
-  updateDashboard(currentDashboardRange);
-  updateAnalytics(currentAnalyticsRange);
-}
+function updateChartsOnDataChange(){ updateDashboard(currentDashboardRange); updateAnalytics(currentAnalyticsRange); }
 
 /* ====== Utilities ====== */
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, (m)=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-
-/* ====== Export CSV ====== */
 function exportToCSV(){
-  const range = currentAnalyticsRange || 'weekly';
-  const days = getRangeDays(range);
+  const range = currentAnalyticsRange || 'weekly'; const days = getRangeDays(range);
   let rows = [['date','study_hours','workout_mins','tasks_completed','sleep','wake']];
+  const allTasks = getTasks();
   if(range==='yearly'){
-    // use monthly rows
     for(const m of days){
       let study=0,work=0,tasks=0,sleep='',wake='';
-      const [y,mm]=m.split('-'); const di = new Date(y,parseInt(mm),0).getDate();
-      for(let d=1;d<=di;d++){
+      const [y,mm]=m.split('-');
+      for(let d=1;d<=new Date(y,parseInt(mm),0).getDate();d++){
         const iso = `${m}-${String(d).padStart(2,'0')}`;
         study += totalStudyForDay(iso); work += totalWorkoutForDay(iso);
-        tasks += getTasksForDay(iso).filter(t=>t.completed).length;
-        const s = getSleepForDay(iso);
-        if(s){ sleep = s.sleep; wake = s.wake; }
+        tasks += allTasks.filter(t=> t.completed && t.completedAt && t.completedAt.startsWith(iso)).length;
+        const s = getSleepForDay(iso); if(s){ sleep = s.sleep; wake = s.wake; }
       }
       rows.push([m, study, work, tasks, sleep, wake]);
     }
   } else {
     for(const d of days){
-      rows.push([d, totalStudyForDay(d), totalWorkoutForDay(d), getTasksForDay(d).filter(t=>t.completed).length, (getSleepForDay(d)||{}).sleep||'', (getSleepForDay(d)||{}).wake||'']);
+      rows.push([d, totalStudyForDay(d), totalWorkoutForDay(d), allTasks.filter(t=> t.completed && t.completedAt && t.completedAt.startsWith(d)).length, (getSleepForDay(d)||{}).sleep||'', (getSleepForDay(d)||{}).wake||'']);
     }
   }
-  let csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = `prod_report_${new Date().toISOString().split('T')[0]}.csv`; a.click();
-  URL.revokeObjectURL(url);
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `prod_report_${new Date().toISOString().split('T')[0]}.csv`; a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 /* ====== Init & bindings ====== */
@@ -872,48 +1028,63 @@ function updateTodayQuickStats(){
   $('todayWorkout').textContent = `${totalWorkoutForDay(todayISO())} min`;
   updateTodayCompletedCount();
 }
-
-function updateTodayCompletedCount(){
-  const cnt = getTasksForDay(todayISO()).filter(t=>t.completed).length;
-  $('todayCompletedTasks').textContent = cnt;
+function updateTodayCompletedCount(){ 
+    const today = todayISO();
+    $('todayCompletedTasks').textContent = getTasks().filter(t => t.completed && t.completedAt && t.completedAt.startsWith(today)).length; 
 }
-
 function loadHomeQuickStats(){ updateTodayQuickStats(); updateSleepInfo(); $('subTitle').textContent = 'Stay focused — check your progress'; }
 
+function migrateTasks() {
+    if (read('tasks_migrated')) return;
+    console.log('Running one-time task migration...');
+    let allTasks = [];
+    // Check the last 365 days for old task data
+    for (let i = 0; i < 365; i++) {
+        const d = datePlusDays(todayISO(), -i);
+        const dailyTasks = read('tasks_' + d);
+        if (dailyTasks && dailyTasks.length > 0) {
+            allTasks.push(...dailyTasks);
+            localStorage.removeItem(STORAGE_PREFIX + 'tasks_' + d); // Clean up old data
+        }
+    }
+    // Remove duplicates by ID, just in case
+    const uniqueTasks = allTasks.filter((task, index, self) =>
+        index === self.findIndex((t) => (t.id === task.id))
+    );
+    saveTasks(uniqueTasks);
+    write('tasks_migrated', true);
+    console.log(`Migration complete. ${uniqueTasks.length} tasks migrated.`);
+}
+
 function initialize(){
-  setDailyQuote();
-  requestNotificationPermission();
+  migrateTasks();
+  setDailyQuote(); setupNotificationButton();
   $('todayDate').textContent = new Date().toLocaleDateString();
-  initCharts();
-  loadHomeQuickStats();
-  loadTasks();
-  updateDashboard('weekly');
-  updateAnalytics('weekly');
-  // events
+  initCharts(); loadHomeQuickStats(); loadTasks();
+  updateDashboard('weekly'); updateAnalytics('weekly');
+  const savedKey = getApiKey(); if(savedKey) $('apiKeyInput').value = savedKey;
+  // AI & Modal events
+  $('getMotivationBtn').addEventListener('click', getDailyMotivation);
+  $('breakdownBtn').addEventListener('click', breakDownTask);
+  $('closeModal').onclick = () => $('aiModal').style.display = 'none';
+  window.onclick = (event) => { if (event.target == $('aiModal')) $('aiModal').style.display = "none"; }
+  // Chat events
+  $('sendChatBtn').addEventListener('click', handleSendMessage);
+  $('chatInput').addEventListener('keyup', (event) => { if (event.key === 'Enter') handleSendMessage(); });
+  loadChatHistory();
+  // Other events
   $('exportBtn').addEventListener('click', exportToCSV);
-  $('darkToggle').addEventListener('click', ()=>{
-    document.documentElement.classList.toggle('dark');
-  });
-  // initial XP display
+  $('darkToggle').addEventListener('click', ()=>{ document.documentElement.classList.toggle('dark'); });
   $('xpPoints').textContent = getXP();
 }
 
 window.addEventListener('load', initialize);
 
 /* Expose some functions to global (for inline handlers) */
-window.showSection = showSection;
-window.addNewTask = addNewTask;
-window.loadTasks = loadTasks;
-window.toggleTask = toggleTask;
-window.deleteTask = deleteTask;
-window.logStudy = logStudy;
-window.logWorkout = logWorkout;
-window.addQuickTask = addQuickTask;
-window.logSleep = logSleep;
-window.updateDashboard = updateDashboard;
-window.updateAnalytics = updateAnalytics;
-window.exportToCSV = exportToCSV;
+window.showSection = showSection; window.addNewTask = addNewTask; window.loadTasks = loadTasks; window.toggleTask = toggleTask; window.deleteTask = deleteTask; window.logStudy = logStudy; window.logWorkout = logWorkout; window.addQuickTask = addQuickTask; window.logSleep = logSleep; window.updateDashboard = updateDashboard; window.updateAnalytics = updateAnalytics; window.exportToCSV = exportToCSV; window.saveApiKey = saveApiKey; window.saveApiKeyOnEnter = saveApiKeyOnEnter; window.useSuggestion = useSuggestion;
+window.addTarget = addTarget; window.toggleTarget = toggleTarget; window.deleteTarget = deleteTarget;
 
 </script>
 </body>
 </html>
+
