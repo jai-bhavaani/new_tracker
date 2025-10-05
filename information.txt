@@ -1,0 +1,69 @@
+Of course. After analyzing the entire application, I've broken down the most important names and concepts you'll need to know to make any changes. Think of this as a quick reference guide to the code.
+
+### 1. The Core Structure
+
+* **Single File:** The entire app—HTML, CSS, and JavaScript—is in `index.html`. All changes will be made in this one file.
+* **Initialization:** The app starts when the `initialize()` function is called at the very end of the script. This function sets everything up.
+* **Global Functions:** Many functions are intentionally made globally accessible at the end of the script (e.g., `window.showSection = showSection;`). This is how the `onclick` attributes in the HTML can work.
+
+---
+
+### 2. Data Storage: `localStorage`
+
+All your data (tasks, study hours, etc.) is saved in the browser's `localStorage`. The code uses simple helper functions for this.
+
+* `read(key)`: Use this to get data from storage.
+* `write(key, value)`: Use this to save data to storage.
+* `STORAGE_PREFIX`: This is `prodtrk_`. It's added to every key to prevent conflicts with other websites. For example, tasks are saved under the key `prodtrk_tasks`.
+
+---
+
+### 3. Key Functions and Associated HTML IDs
+
+Here is a map of the app's main features to the JavaScript functions and HTML element IDs that control them.
+
+#### **Page Navigation**
+* **Function**: `showSection(sectionId, element)`
+* **Description**: Hides all sections and shows the one with the matching `sectionId`.
+* **Key IDs**: `homeSection`, `tasksSection`, `targetsSection`, `dashboardSection`, `analyticsSection`, `chatSection`.
+
+#### **Task Management**
+* **Functions**:
+    * `addNewTask()`: Adds a new task.
+    * `loadTasks()`: Renders the active and completed task lists.
+    * `toggleTask(id)`: Marks a task as complete or active.
+    * `deleteTask(id)`: Removes a task.
+* **Key IDs**:
+    * `newTaskTitle`, `newTaskDesc`, etc.: Form inputs for adding tasks.
+    * `activeTasks`: The `<div>` where active tasks are displayed.
+    * `completedTasks`: The `<div>` where completed tasks are displayed.
+
+#### **Study, Workout & Sleep Logging**
+* **Functions**: `logStudy()`, `logWorkout()`, `logSleep()`.
+* **Data Pattern**: Data is stored daily using keys like `study_YYYY-MM-DD`.
+* **Key IDs**: `studyHours`, `studyCategory`, `workoutMins`, `sleepTime`, `wakeTime`.
+
+#### **Gemini AI Features**
+* **Central Function**: `callGemini(prompt, buttonElement)` is the **single most important function** for all AI features. It handles the API call, loading states, and error retries.
+* **Feature Functions**:
+    * `getDailyMotivation()`: For the motivation quote on the home screen.
+    * `breakDownTask()`: For breaking a task into sub-tasks (uses the modal).
+    * `handleSendMessage()`: For the AI Chat feature.
+* **Key IDs**:
+    * `apiKeyInput`: The input field for the Gemini API Key.
+    * `aiModal`: The pop-up modal used for task breakdown.
+    * `chatMessages`, `chatInput`: Elements for the AI Chat interface.
+
+#### **Charts and Analytics**
+* **Setup**: `initCharts()` creates all the chart objects when the app loads. The chart instances are stored in a global `charts` object (e.g., `charts.study`, `charts.tasks`).
+* **Rendering**:
+    * `updateDashboard()`: Updates the charts on the Dashboard page.
+    * `updateAnalytics()`: Updates the charts on the Analytics page.
+* **Key IDs**: `chartStudy`, `chartWorkout`, `chartTasks`, etc. These are the `<canvas>` elements where the charts are drawn.
+
+#### **Notification System**
+* **Function**: `checkTaskReminders()`
+* **Description**: This function runs every 60 seconds. It checks all of today's tasks and triggers a browser notification if a task is starting soon.
+* **Key Change**: The logic was recently fixed to ensure it only checks tasks scheduled for the **current day** (`dueDate: todayISO()`).
+
+To summarize, if you want to change a feature, find its corresponding function and HTML IDs in the list above, and you'll know exactly where to start editing.

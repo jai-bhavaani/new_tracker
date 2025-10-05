@@ -24,7 +24,7 @@
       --max-width:1100px;
     }
     /* Dark Mode Toggle */
-    .dark { --bg:#0b1220; --card: #08101a; --accent:#3b82f6; --accent-dark:#2563eb; --muted:#9aa9bf; color:#e6eef8; }
+    .dark { --bg:#0b1220; --card: #282d34; --accent:#9dc9ff; --accent-dark:#93b9f7; --muted:#9aa9bf; color:#e6eef8; }
     html,body{height:100%;margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;color:#07203b;background:linear-gradient(180deg,var(--bg),#dfeeff); }
     .app{max-width:var(--max-width);margin:0 auto;padding:1rem 1rem 90px;box-sizing:border-box;}
     header.main-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 0}
@@ -40,6 +40,7 @@
     .small{padding:.35rem .6rem;font-size:.9rem;border-radius:8px}
     input, select, textarea{width:100%;padding:.6rem;border-radius:8px;border:1px solid rgba(10,20,40,0.06);box-sizing:border-box;background:transparent}
     .muted{color:var(--muted);font-size:.9rem}
+    #todayQuote { font-size: 1.2rem; font-style: italic; }
     /* Sections */
     .section{display:none;opacity:0;transform:translateY(6px);transition:all .25s ease-in-out;padding-bottom:1rem}
     .section.active{display:block;opacity:1;transform:none}
@@ -54,19 +55,18 @@
     .task-item:hover, .target-item:hover {transform:translateY(-4px)}
     .task-completed, .target-completed {opacity:.55;text-decoration:line-through;background:linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.01))}
     .task-checkbox, .target-checkbox {transform:scale(1.15);}
-    .task-meta{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.5r  em;font-size:.85rem;color:var(--muted)}
+    .task-meta{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.5rem;font-size:.85rem;color:var(--muted)}
     .priority-low{color:#2dbe60}
     .priority-medium{color:#ffb020}
     .priority-high{color:var(--danger)}
     .task-actions, .target-actions {margin-left:auto;display:flex;gap:.4rem}
 
     .tasks-layout {
-        
         display: flex;
         gap: 1rem;
         word-wrap: break-word; /* Breaks long words if needed */
-  overflow-wrap: break-word; /* Modern way to break words */
-  text-overflow: ellipsis;
+        overflow-wrap: break-word; /* Modern way to break words */
+        text-overflow: ellipsis;
         flex-wrap: wrap;
     }
     .tasks-layout > .card {
@@ -119,6 +119,26 @@
     .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
     .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
     @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+    
+    /* Mood Tracker */
+    .mood-selector { display: flex; justify-content: space-around; margin-top: 1rem; }
+    .mood-option { font-size: 2rem; cursor: pointer; transition: transform 0.2s ease; padding: 0.5rem; border-radius: 50%; }
+    .mood-option:hover { transform: scale(1.2); }
+    .mood-option.selected { background-color: rgba(43, 124, 255, 0.15); transform: scale(1.1); }
+
+    /* Dark Mode Fixes */
+    .dark input, .dark select, .dark textarea {
+        border-color: rgba(255, 255, 255, 0.2);
+        color: #e6eef8;
+    }
+    .dark ::placeholder {
+        color: var(--muted);
+        opacity: 1; /* Override browser defaults */
+    }
+    .dark .btn.ghost {
+        color: var(--accent);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
 
     /* Responsive */
     @media(max-width:900px){ .tasks-grid{grid-template-columns:1fr} .summary-cards{grid-template-columns:repeat(2,1fr)} header h1{font-size:1rem} .analytics-grid { grid-template-columns: 1fr; } }
@@ -148,7 +168,6 @@
       <div style="font-size: 40px; font-weight: 600; font-family:'Times New Roman', Times, serif;">
         TrackeX
       </div>
-      
     </div>
     <div class="muted" id="subTitle">Motivation to do more — live stats</div>
     <div class="header-buttons" style="display:flex;gap:.6rem;align-items:center">
@@ -162,19 +181,13 @@
   <section id="homeSection" class="section active card">
      <div style="display:flex;justify-content:space-between;align-items:center;">
       <div>
-        <h2 style="margin:.2rem 0 0">Home</h2>
+        <h1 style="margin:.2rem 0 0">Home</h1>
         <div class="muted" id="todayQuote">Keep going — small progress adds up.</div>
       </div>
       <div class="muted">Today: <span id="todayDate"></span></div>
     </div>
     <div style="margin-top:.8rem;display:flex;gap:1rem;flex-wrap:wrap">
       <div style="flex:1;min-width:220px">
-        <div class="card" style="background: var(--accent); color: white;">
-          <h3 style="margin:.2rem 0">✨ Gemini AI Features</h3>
-          <div class="muted" style="color: rgba(255,255,255,0.8);">Enter your Gemini API key to enable AI features.</div>
-          <input id="apiKeyInput" type="password" placeholder="Enter your Gemini API Key" style="background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); color: white; margin-top: .5rem;" onkeyup="saveApiKeyOnEnter(event)">
-          <button class="btn ghost" style="margin-top: .5rem; border-color: white; color: white;" onclick="saveApiKey()">Save Key</button>
-        </div>
         <div class="card">
             <h3 style="margin:.2rem 0">✨ Daily Motivation</h3>
             <div class="muted" id="quotesContainer" style="min-height: 40px;"> Your daily dose of motivation will appear here. </div>
@@ -198,6 +211,22 @@
           </div>
         </div>
         <div class="card" style="margin-top:1rem">
+            <h3 style="margin:.2rem 0">Log Water Intake</h3>
+            <div class="muted">Litres of water</div>
+            <div class="form-row">
+              <input id="waterLitres" type="number" min="0.1" step="0.1" placeholder="Litres (e.g., 2.5)">
+              <button class="btn" onclick="logWater()"><i class="fas fa-tint"></i> Add</button>
+            </div>
+        </div>
+        <div class="card" style="margin-top:1rem">
+            <h3 style="margin:.2rem 0">Log Meditation</h3>
+            <div class="muted">Minutes of meditation</div>
+            <div class="form-row">
+                <input id="meditationMins" type="number" min="1" step="1" placeholder="Minutes">
+                <button class="btn" onclick="logMeditation()"><i class="fas fa-om"></i> Add</button>
+            </div>
+        </div>
+        <div class="card" style="margin-top:1rem">
           <h3 style="margin:.2rem 0">Quick Task</h3>
           <div class="muted">Add quick task with time/duration</div>
           <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem">
@@ -208,6 +237,12 @@
               <button class="btn" onclick="addQuickTask()"><i class="fas fa-bolt"></i> Add</button>
             </div>
           </div>
+        </div>
+        <div class="card" style="background: var(--accent); color: white;">
+          <h3 style="margin:.2rem 0">✨ Gemini AI Features</h3>
+          <div class="muted" style="color: rgba(255,255,255,0.8);">Enter your Gemini API key to enable AI features.</div>
+          <input id="apiKeyInput" type="password" placeholder="Enter your Gemini API Key" style="background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); color: white; margin-top: .5rem;" onkeyup="saveApiKeyOnEnter(event)">
+          <button class="btn ghost" style="margin-top: .5rem; border-color: white; color: white;" onclick="saveApiKey()">Save Key</button>
         </div>
       </div>
       <div style="flex:1;min-width:300px">
@@ -222,8 +257,29 @@
           <div style="margin-top:.6rem" id="sleepInfo"></div>
         </div>
         <div class="card" style="margin-top:1rem">
+            <h3 style="margin:.2rem 0">Your Targets</h3>
+            <div class="muted">Review and manage your weekly, monthly, and yearly goals.</div>
+            <div class="form-row" style="margin-top: 1rem;">
+                <button class="btn" onclick="showSection('targetsSection', null)" style="width: 100%; justify-content: center;">
+                    <i class="fas fa-bullseye"></i>&nbsp;Manage Targets
+                </button>
+            </div>
+        </div>
+        <div class="card" style="margin-top:1rem">
+            <h3 style="margin:.2rem 0">Today's Mood</h3>
+            <div class="muted">Log how you're feeling today.</div>
+            <div id="moodSelector" class="mood-selector">
+                <div class="mood-option" onclick="logMood('terrible')" title="Terrible">😞</div>
+                <div class="mood-option" onclick="logMood('bad')" title="Bad">😐</div>
+                <div class="mood-option" onclick="logMood('okay')" title="Okay">🙂</div>
+                <div class="mood-option" onclick="logMood('good')" title="Good">😊</div>
+                <div class="mood-option" onclick="logMood('great')" title="Great">😄</div>
+            </div>
+            <div id="loggedMoodInfo" class="muted" style="text-align:center; margin-top:.5rem;"></div>
+        </div>
+        <div class="card" style="margin-top:1rem">
           <h3 style="margin:.2rem 0">Quick Stats</h3>
-          <div style="display:flex;gap:1rem;flex-wrap:wrap">
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;flex-wrap:wrap">
             <div class="summary-card" style="min-width:120px">
               <div class="muted">Study (today)</div>
               <div id="todayStudyHours" style="font-weight:800;font-size:1.2rem">0 hrs</div>
@@ -233,10 +289,18 @@
               <div id="todayWorkout" style="font-weight:800;font-size:1.2rem">0 min</div>
             </div>
             <div class="summary-card" style="min-width:120px">
-              <div class="muted">Tasks Done (today)</div>
-              <div id="todayCompletedTasks" style="font-weight:800;font-size:1.2rem">0</div>
+                <div class="muted">Water (today)</div>
+                <div id="todayWater" style="font-weight:800;font-size:1.2rem">0 L</div>
             </div>
             <div class="summary-card" style="min-width:120px">
+                <div class="muted">Meditation</div>
+                <div id="todayMeditation" style="font-weight:800;font-size:1.2rem">0 min</div>
+            </div>
+            <div class="summary-card" style="min-width:120px">
+              <div class="muted">Tasks Done</div>
+              <div id="todayCompletedTasks" style="font-weight:800;font-size:1.2rem">0</div>
+            </div>
+            <div class="summary-card" style="min-width:120px; grid-column: 1 / -1;">
               <div class="muted">Streak</div>
               <div id="streakCount" style="font-weight:800;font-size:1.2rem">0</div>
             </div>
@@ -326,12 +390,14 @@
     <div class="summary-cards" style="margin-top:.6rem">
       <div class="summary-card"> <div class="muted">Total Study (selected)</div> <div id="selStudy" style="font-weight:800">0 hrs</div> </div>
       <div class="summary-card"> <div class="muted">Total Workout (selected)</div> <div id="selWorkout" style="font-weight:800">0 min</div> </div>
+      <div class="summary-card"> <div class="muted">Total Meditation (selected)</div> <div id="selMeditation" style="font-weight:800">0 min</div> </div>
       <div class="summary-card"> <div class="muted">Tasks Completed (selected)</div> <div id="selTasks" style="font-weight:800">0</div> </div>
       <div class="summary-card"> <div class="muted">Current Streak</div> <div id="selStreak" style="font-weight:800">0</div> </div>
     </div>
     <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem">
       <div class="chart-wrap" style="flex:1;min-width:300px"> <h4 style="margin:.2rem 0">Study Hours (day-wise)</h4> <canvas id="chartStudy" height="120"></canvas> </div>
       <div class="chart-wrap" style="flex:1;min-width:300px"> <h4 style="margin:.2rem 0">Workout Minutes (day-wise)</h4> <canvas id="chartWorkout" height="120"></canvas> </div>
+      <div class="chart-wrap" style="flex:1;min-width:300px"> <h4 style="margin:.2rem 0">Meditation Minutes (day-wise)</h4> <canvas id="chartMeditation" height="120"></canvas> </div>
       <div class="chart-wrap" style="flex:1;min-width:300px"> <h4 style="margin:.2rem 0">Tasks Completed (day-wise)</h4> <canvas id="chartTasks" height="120"></canvas> </div>
     </div>
   </section>
@@ -349,6 +415,8 @@
       <div class="chart-wrap"> <h4 style="margin:.2rem 0">Task Completion Trend</h4> <canvas id="chartTaskTrend" height="140"></canvas> </div>
       <div class="chart-wrap"> <h4 style="margin:.2rem 0">Sleep Patterns (Sleep vs Wake hour)</h4> <canvas id="chartSleep" height="140"></canvas> </div>
       <div class="chart-wrap"> <h4 style="margin:.2rem 0">Workout Distribution</h4> <canvas id="chartWorkoutDist" height="140"></canvas> </div>
+      <div class="chart-wrap"> <h4 style="margin:.2rem 0">Mood & Productivity Correlation</h4> <canvas id="chartMood" height="140"></canvas> </div>
+      <div class="chart-wrap"> <h4 style="margin:.2rem 0">Water Intake (Litres)</h4> <canvas id="chartWater" height="140"></canvas> </div>
     </div>
   </section>
 
@@ -364,10 +432,45 @@
             <button class="btn small ghost" onclick="useSuggestion('Create a balanced study plan for next week')">Weekly Study Plan</button>
             <button class="btn small ghost" onclick="useSuggestion('Give me a 5-day workout routine for this month')">Monthly Workout Plan</button>
             <button class="btn small ghost" onclick="useSuggestion('Help me plan my work tasks for tomorrow')">Plan Tomorrow's Work</button>
-        </div>
+            <button class="btn small ghost" onclick="useSuggestion('how am i doing ')">how am i doing </button>
+          </div>
         <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
             <input id="chatInput" type="text" placeholder="Ask for a plan..." style="flex: 1;">
             <button id="sendChatBtn" class="btn"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+  </section>
+
+  <!-- Profile Section -->
+  <section id="profileSection" class="section">
+    <div class="card">
+        <h2 style="margin:.2rem 0">Personal Details</h2>
+        <div class="muted">Providing these details helps the AI give you more personalized advice. This information is stored only on your device.</div>
+        <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 1rem;">
+            <div>
+                <label for="userName" class="muted" style="margin-bottom: .25rem; display: block;">Your Name</label>
+                <input id="userName" type="text" placeholder="e.g., Alex Doe">
+            </div>
+            <div>
+                <label for="userAge" class="muted" style="margin-bottom: .25rem; display: block;">Your Age</label>
+                <input id="userAge" type="number" min="1" placeholder="e.g., 25">
+            </div>
+            <div>
+                <label for="userEducation" class="muted" style="margin-bottom: .25rem; display: block;">Highest Education</label>
+                <select id="userEducation">
+                    <option value="">Select...</option>
+                    <option value="High School">High School</option>
+                    <option value="Bachelor's Degree">Bachelor's Degree</option>
+                    <option value="Master's Degree">Master's Degree</option>
+                    <option value="PhD">PhD</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div>
+                <label for="userGoal" class="muted" style="margin-bottom: .25rem; display: block;">Your Primary Goal</label>
+                <textarea id="userGoal" rows="3" placeholder="e.g., I'm a student preparing for final exams in computer science."></textarea>
+            </div>
+            <button class="btn" onclick="saveProfileDetails()" style="justify-content: center;"><i class="fas fa-save"></i>&nbsp;Save Details</button>
         </div>
     </div>
   </section>
@@ -390,9 +493,9 @@
   <div class="bottom-nav-inner" role="navigation">
     <div class="nav-item active" data-target="homeSection" onclick="showSection('homeSection', this)"><i class="fas fa-home"></i>Home</div>
     <div class="nav-item" data-target="tasksSection" onclick="showSection('tasksSection', this)"><i class="fas fa-tasks"></i>Tasks</div>
-    <div class="nav-item" data-target="targetsSection" onclick="showSection('targetsSection', this)"><i class="fas fa-bullseye"></i>Targets</div>
     <div class="nav-item" data-target="dashboardSection" onclick="showSection('dashboardSection', this)"><i class="fas fa-chart-line"></i>Dashboard</div>
     <div class="nav-item" data-target="analyticsSection" onclick="showSection('analyticsSection', this)"><i class="fas fa-chart-pie"></i>Analytics</div>
+    <div class="nav-item" data-target="profileSection" onclick="showSection('profileSection', this)"><i class="fas fa-user-circle"></i>Profile</div>
     <div class="nav-item" data-target="chatSection" onclick="showSection('chatSection', this)"><i class="fas fa-comments"></i>AI Chat</div>
   </div>
 </nav>
@@ -400,13 +503,14 @@
 <script>
 /*
   Productivity Tracker - single file app
-  - Features: Study, Workout, Task, Sleep logging, Target Setting
+  - Features: Study, Workout, Task, Sleep, Mood, Water logging, Target Setting, Profile
   - Added Gemini AI for task breakdown, motivation, and chat-based planning
 */
 
 const STORAGE_PREFIX = 'prodtrk_';
 const MAX_DAILY_STUDY = 24;
 const MAX_SESSION_STUDY = 12;
+const MOOD_MAP = { 'terrible': 1, 'bad': 2, 'okay': 3, 'good': 4, 'great': 5 };
 
 let charts = {};
 let currentDashboardRange = 'weekly';
@@ -428,10 +532,17 @@ function showSection(id, el){
   if(id==='homeSection') loadHomeQuickStats();
   if(id==='tasksSection') loadTasks();
   if(id==='targetsSection') loadTargets();
+  if(id==='profileSection') loadProfileDetails();
 }
 
 /* ====== Helper: Date keys & ranges ====== */
-function todayISO(){ return new Date().toISOString().split('T')[0]; }
+function todayISO(){ 
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 function datePlusDays(baseDateISO, offset){
   const d = new Date(baseDateISO + 'T00:00:00');
   d.setDate(d.getDate()+offset);
@@ -491,12 +602,27 @@ async function callGemini(prompt, buttonElement = null, retries = 3, delay = 100
 
 async function getDailyMotivation() {
     const study = totalStudyForDay(todayISO());
+    const workout = totalWorkoutForDay(todayISO());
     const today = todayISO();
     const tasks = getTasks().filter(t => t.completed && t.completedAt && t.completedAt.startsWith(today)).length;
-    let context = "The user hasn't logged any activity yet today.";
-    if (study > 0 && tasks > 0) { context = `The user has studied for ${study.toFixed(1)} hours and completed ${tasks} tasks today.`; } 
-    else if (study > 0) { context = `The user has studied for ${study.toFixed(1)} hours today.`; } 
-    else if (tasks > 0) { context = `The user has completed ${tasks} tasks today.`; }
+    const streak = read('streak', 0);
+
+    let contextParts = [];
+    if (study > 0) contextParts.push(`studied for ${study.toFixed(1)} hours`);
+    if (workout > 0) contextParts.push(`worked out for ${workout} minutes`);
+    if (tasks > 0) contextParts.push(`completed ${tasks} ${tasks > 1 ? 'tasks' : 'task'}`);
+
+    let context;
+    if (contextParts.length > 0) {
+        context = `The user has ${contextParts.join(' and ')} today.`;
+    } else {
+        context = "The user hasn't logged any activity yet today.";
+    }
+
+    if (streak > 1) {
+        context += ` They are currently on a ${streak}-day streak!`;
+    }
+
     const prompt = `You are an encouraging productivity coach. Write a short, fresh, and powerful motivational quote for a user. Be inspiring and concise (1-2 sentences). Current user context: ${context}`;
     const responseText = await callGemini(prompt, $('getMotivationBtn'));
     if (responseText) { $('quotesContainer').textContent = responseText; }
@@ -551,6 +677,58 @@ async function breakDownTask() {
 }
 
 /* ====== AI Chat Functions ====== */
+
+function getAIContext() {
+    const profile = getProfileDetails();
+    let context = "User's Profile:\n";
+    if (profile.name || profile.age || profile.education || profile.goal) {
+        if (profile.name) context += `- Name: ${profile.name}\n`;
+        if (profile.age) context += `- Age: ${profile.age}\n`;
+        if (profile.education) context += `- Education: ${profile.education}\n`;
+        if (profile.goal) context += `- Primary Goal: "${profile.goal}"\n`;
+    } else {
+        context += '- No personal details provided.\n';
+    }
+
+    context += "\nUser's Productivity Summary (Last 7 Days):\n";
+    let totalStudy = 0, totalWorkout = 0, tasksCompleted = 0, moodSum = 0, moodCount = 0, totalWater = 0, totalMeditation = 0;
+    for (let i = 0; i < 7; i++) {
+        const day = datePlusDays(todayISO(), -i);
+        totalStudy += totalStudyForDay(day);
+        totalWorkout += totalWorkoutForDay(day);
+        totalMeditation += totalMeditationForDay(day);
+        tasksCompleted += getTasks().filter(t => t.completed && t.completedAt && t.completedAt.startsWith(day)).length;
+        const mood = getMoodForDay(day);
+        if (mood) {
+            moodSum += MOOD_MAP[mood.mood] || 0;
+            moodCount++;
+        }
+        totalWater += totalWaterForDay(day);
+    }
+    const activeTasks = getTasks().filter(t => !t.completed).length;
+    const streak = read('streak', 0);
+    const weeklyTargets = getTargets().filter(t => t.period === 'week' && !t.completed && isDateInCurrentWeek(t.createdAt)).map(t => t.text);
+
+    context += `- Total Study: ${totalStudy.toFixed(1)} hours\n`;
+    context += `- Total Workout: ${totalWorkout} minutes\n`;
+    context += `- Total Meditation: ${totalMeditation} minutes\n`;
+    context += `- Total Water Intake: ${totalWater.toFixed(1)} litres\n`;
+    context += `- Tasks Completed: ${tasksCompleted}\n`;
+    context += `- Pending Tasks: ${activeTasks}\n`;
+    context += `- Current Streak: ${streak} days\n`;
+    if (moodCount > 0) {
+        const avgMoodNum = (moodSum / moodCount);
+        const moodNumToText = { 1: 'terrible', 2: 'bad', 3: 'okay', 4: 'good', 5: 'great' };
+        context += `- Average Mood: ${moodNumToText[Math.round(avgMoodNum)]} (${avgMoodNum.toFixed(1)}/5.0)\n`;
+    }
+    if (weeklyTargets.length > 0) {
+        context += `- Active Weekly Targets: ${weeklyTargets.join(', ')}\n`;
+    } else {
+        context += "- No active weekly targets.\n";
+    }
+    return context;
+}
+
 function parseMarkdown(text) {
     text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>');
     text = text.replace(/^\s*[\*-]\s+(.*)$/gm, '<li>$1</li>');
@@ -587,7 +765,19 @@ async function handleSendMessage() {
     renderChat();
     input.value = '';
     const today = new Date();
-    const prompt = `You are a helpful and motivating productivity assistant named Gemini. Current context: The current time is ${today.toLocaleTimeString('en-US')} on ${today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. User's request: "${message}". Provide a helpful and structured response. If creating a plan, use markdown for lists and bolding for emphasis. Keep the tone encouraging.`;
+    const context = getAIContext();
+    const prompt = `You are a helpful and motivating productivity assistant named Gemini. Your role is to analyze the user's data and provide actionable advice.
+---
+${context}
+---
+Current time: ${today.toLocaleTimeString('en-US')} on ${today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.
+Based on the detailed data provided, respond to the user's request below.
+**Instructions for your response:**
+- Be concise and to the point.
+- Use bullet points for all lists, plans, or suggestions.
+- Keep the tone encouraging.
+
+User's request: "${message}"`;
     const responseText = await callGemini(prompt, $('sendChatBtn'));
     chatHistory.pop();
     if (responseText) { chatHistory.push({ role: 'ai', text: responseText }); } 
@@ -647,9 +837,14 @@ function setupNotificationButton() {
 
 /* ====== Quotes (daily rotate) ====== */
 const QUOTES = [ "Small steps every day lead to big gains.", "Focus on progress, not perfection.", "Your future is created by what you do today.", "Consistency beats intensity over time.", "Do something today your future self will thank you for." ];
-function setDailyQuote(){ const idx = new Date().toISOString().split('T')[0].split('-').join('') % QUOTES.length; $('todayQuote').textContent = QUOTES[idx]; }
+ 
+function setDailyQuote(){ 
+    // Select a random quote from the array on each page load
+    const idx = Math.floor(Math.random() * QUOTES.length);
+    $('todayQuote').textContent = QUOTES[idx]; 
+}
 
-/* ====== Data Logging Functions (Study, Workout, Sleep, Tasks) ====== */
+/* ====== Data Logging Functions (Study, Workout, Sleep, Tasks, Mood, Water, Meditation) ====== */
 function getStudyForDay(dayISO){ return read('study_' + dayISO, []); }
 function saveStudyForDay(dayISO, arr){ write('study_' + dayISO, arr); }
 function totalStudyForDay(dayISO){ return getStudyForDay(dayISO).reduce((s,x)=>s+(parseFloat(x.hours)||0),0); }
@@ -666,13 +861,14 @@ function logStudy(){
     const entry = { hours: allowed, category, ts: new Date().toISOString() };
     const arr = getStudyForDay(today); arr.push(entry); saveStudyForDay(today, arr); $('studyHours').value='';
     showToast(`${allowed} hr ${category} added (capped)`);
-    updateDashboard(currentDashboardRange); updateChartsOnDataChange(); return;
+    updateChartsOnDataChange(); updateTodayQuickStats(); return;
   }
   const entry = { hours: hoursInput, category, ts: new Date().toISOString() };
   const arr = getStudyForDay(today); arr.push(entry); saveStudyForDay(today, arr); $('studyHours').value='';
   showToast(`${hoursInput} hr ${category} added! Great job!`);
   addXP(Math.round(hoursInput*20));
-  updateDashboard(currentDashboardRange); updateChartsOnDataChange();
+  updateChartsOnDataChange();
+  updateTodayQuickStats();
 }
 function getWorkoutForDay(dayISO){ return read('workouts_' + dayISO, []); }
 function saveWorkoutForDay(dayISO, arr){ write('workouts_' + dayISO, arr); }
@@ -684,7 +880,40 @@ function logWorkout(){
   arr.push({ mins, ts: new Date().toISOString() });
   saveWorkoutForDay(today, arr); $('workoutMins').value='';
   showToast(`${mins} min workout added!`); addXP(Math.round(mins/6));
-  updateDashboard(currentDashboardRange); updateChartsOnDataChange();
+  updateChartsOnDataChange();
+  updateTodayQuickStats();
+}
+function getWaterForDay(dayISO){ return read('water_' + dayISO, []); }
+function saveWaterForDay(dayISO, arr){ write('water_' + dayISO, arr); }
+function totalWaterForDay(dayISO){ return getWaterForDay(dayISO).reduce((s,x)=>s+(parseFloat(x.litres)||0),0); }
+function logWater() {
+    const litres = parseFloat($('waterLitres').value || 0);
+    if(!litres || litres <= 0){ showToast('Enter valid litres'); return; }
+    const today = todayISO();
+    const arr = getWaterForDay(today);
+    arr.push({ litres, ts: new Date().toISOString() });
+    saveWaterForDay(today, arr);
+    $('waterLitres').value='';
+    showToast(`${litres.toFixed(1)} L water added! Stay hydrated!`);
+    addXP(Math.round(litres * 5));
+    updateChartsOnDataChange();
+    updateTodayQuickStats();
+}
+function getMeditationForDay(dayISO){ return read('meditation_' + dayISO, []); }
+function saveMeditationForDay(dayISO, arr){ write('meditation_' + dayISO, arr); }
+function totalMeditationForDay(dayISO){ return getMeditationForDay(dayISO).reduce((s,x)=>s+(parseInt(x.mins)||0),0); }
+function logMeditation() {
+    const mins = parseInt($('meditationMins').value || 0);
+    if(!mins || mins <= 0){ showToast('Enter valid meditation minutes'); return; }
+    const today = todayISO();
+    const arr = getMeditationForDay(today);
+    arr.push({ mins, ts: new Date().toISOString() });
+    saveMeditationForDay(today, arr);
+    $('meditationMins').value='';
+    showToast(`${mins} min meditation added! Namaste.`);
+    addXP(Math.round(mins / 2));
+    updateChartsOnDataChange();
+    updateTodayQuickStats();
 }
 function getSleepForDay(dayISO){ return read('sleep_' + dayISO, null); }
 function saveSleepForDay(dayISO, obj){ write('sleep_' + dayISO, obj); }
@@ -713,7 +942,7 @@ function addNewTask(){
   tasks.push({ id: Date.now() + Math.floor(Math.random()*999), title, description: $('newTaskDesc').value.trim(), priority: $('taskPriority').value, category: $('taskCategory').value, startTime: $('taskStartTime').value, endTime: $('taskEndTime').value, completed:false, createdAt: new Date().toISOString() });
   saveTasks(tasks);
   $('newTaskTitle').value=''; $('newTaskDesc').value=''; $('taskPriority').value='low'; $('taskCategory').value='personal'; $('taskStartTime').value=''; $('taskEndTime').value='';
-  showToast('Task added'); updateDashboard(currentDashboardRange); loadTasks(); updateChartsOnDataChange();
+  showToast('Task added'); loadTasks(); updateChartsOnDataChange();
 }
 function addQuickTask(){
   const title = $('quickTaskTitle').value.trim();
@@ -724,7 +953,7 @@ function addQuickTask(){
   tasks.push({ id: Date.now() + Math.floor(Math.random()*999), title, description:'', priority:'low', category:'quick', startTime: time||'', endTime, completed:false, createdAt:new Date().toISOString() });
   saveTasks(tasks);
   $('quickTaskTitle').value=''; $('quickTaskTime').value=''; $('quickTaskDuration').value='';
-  showToast('Quick task added'); loadTasks(); updateDashboard(currentDashboardRange); updateChartsOnDataChange();
+  showToast('Quick task added'); loadTasks(); updateChartsOnDataChange();
 }
 function addDurationToTime(timeStr, mins){
   const [hh,mm] = timeStr.split(':').map(Number);
@@ -751,15 +980,15 @@ function loadTasks(){
   const activeCont = $('activeTasks'); const compCont = $('completedTasks');
   activeCont.innerHTML= active.length===0 ? '<div class="muted">No active tasks</div>' : active.map(t => `
     <div class="task-item">
-      <input type="checkbox" class="task-checkbox" onchange="toggleTask(${t.id}, false)">
+      <input type="checkbox" class="task-checkbox" onchange="toggleTask(${t.id})">
       <div style="flex:1"> <div style="font-weight:700">${escapeHtml(t.title)}</div> ${t.description? `<div class="muted">${escapeHtml(t.description)}</div>` : ''}
         <div class="task-meta"> <span><i class="fas fa-tag"></i> ${escapeHtml(t.category)}</span> <span class="priority-${t.priority}"><i class="fas fa-flag"></i> ${t.priority}</span> ${t.startTime ? `<span><i class="fas fa-clock"></i> ${t.startTime}${t.endTime? ' - '+t.endTime:''}</span>` : ''} </div>
       </div>
-      <div class="task-actions"> <button title="Complete" class="btn small" onclick="toggleTask(${t.id}, true)"><i class="fas fa-check"></i></button> <button title="Delete" class="btn small ghost" onclick="deleteTask(${t.id})"><i class="fas fa-trash"></i></button> </div>
+      <div class="task-actions"> <button title="Complete" class="btn small" onclick="toggleTask(${t.id})"><i class="fas fa-check"></i></button> <button title="Delete" class="btn small ghost" onclick="deleteTask(${t.id})"><i class="fas fa-trash"></i></button> </div>
     </div>`).join('');
   compCont.innerHTML= completed.length===0 ? '<div class="muted">No completed tasks</div>' : completed.map(t => `
     <div class="task-item task-completed">
-      <input type="checkbox" class="task-checkbox" checked onchange="toggleTask(${t.id}, false)">
+      <input type="checkbox" class="task-checkbox" checked onchange="toggleTask(${t.id})">
       <div style="flex:1"> <div style="font-weight:700">${escapeHtml(t.title)}</div>
         <div class="task-meta"> <span><i class="fas fa-tag"></i> ${escapeHtml(t.category)}</span> <span class="muted">Completed</span> </div>
       </div>
@@ -767,25 +996,39 @@ function loadTasks(){
     </div>`).join('');
   updateTodayCompletedCount();
 }
-function toggleTask(id, markCompleted){
+function toggleTask(id){
   const tasks = getTasks();
   const idx = tasks.findIndex(t=>t.id===id); if(idx===-1) return;
-  if(markCompleted){ tasks[idx].completed = true; tasks[idx].completedAt = new Date().toISOString(); showToast('Task completed'); addXP(8); } 
-  else { tasks[idx].completed = !tasks[idx].completed; if(!tasks[idx].completed) delete tasks[idx].completedAt; showToast(tasks[idx].completed ? 'Task completed' : 'Task marked active'); }
+
+  tasks[idx].completed = !tasks[idx].completed;
+
+  if (tasks[idx].completed) {
+    tasks[idx].completedAt = new Date().toISOString();
+    showToast('Task completed');
+    addXP(8);
+  } else {
+    delete tasks[idx].completedAt;
+    showToast('Task marked active');
+  }
+
   saveTasks(tasks);
-  loadTasks(); updateDashboard(currentDashboardRange); updateChartsOnDataChange();
+  loadTasks(); 
+  updateChartsOnDataChange();
+  updateTodayQuickStats();
 }
 function deleteTask(id){
   let tasks = getTasks();
   tasks = tasks.filter(t=>t.id!==id);
   saveTasks(tasks);
-  showToast('Task deleted'); loadTasks(); updateDashboard(currentDashboardRange); updateChartsOnDataChange();
+  showToast('Task deleted'); loadTasks(); updateChartsOnDataChange();
+  updateTodayQuickStats();
 }
 
 /* ====== Target Functions ====== */
 function getTargets(){ return read('targets', []); }
 function saveTargets(arr){ write('targets', arr); }
 function isDateInCurrentWeek(dateStr) {
+    if (!dateStr) return false;
     const date = new Date(dateStr);
     const today = new Date();
     const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
@@ -794,11 +1037,13 @@ function isDateInCurrentWeek(dateStr) {
     return date >= firstDayOfWeek && date <= lastDayOfWeek;
 }
 function isDateInCurrentMonth(dateStr) {
+    if (!dateStr) return false;
     const date = new Date(dateStr);
     const today = new Date();
     return date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
 }
 function isDateInCurrentYear(dateStr) {
+    if (!dateStr) return false;
     const date = new Date(dateStr);
     const today = new Date();
     return date.getFullYear() === today.getFullYear();
@@ -873,6 +1118,58 @@ function deleteTarget(id) {
     loadTargets();
 }
 
+/* ====== Mood Functions ====== */
+function getMoodForDay(dayISO){ return read('mood_' + dayISO, null); }
+function saveMoodForDay(dayISO, mood){ write('mood_' + dayISO, { mood, ts: new Date().toISOString() }); }
+
+function logMood(mood) {
+    saveMoodForDay(todayISO(), mood);
+    showToast(`Mood logged as: ${mood}`);
+    addXP(5);
+    loadTodaysMood();
+    updateChartsOnDataChange();
+}
+
+function loadTodaysMood() {
+    const moodData = getMoodForDay(todayISO());
+    const infoEl = $('loggedMoodInfo');
+    document.querySelectorAll('.mood-option').forEach(el => el.classList.remove('selected'));
+
+    if (moodData) {
+        infoEl.textContent = `You felt ${moodData.mood} today.`;
+        const moodEmojiMap = { 'terrible': '😞', 'bad': '😐', 'okay': '🙂', 'good': '😊', 'great': '😄' };
+        const emojiToFind = moodEmojiMap[moodData.mood];
+        const selectedEl = Array.from(document.querySelectorAll('.mood-option')).find(el => el.textContent === emojiToFind);
+        if (selectedEl) {
+            selectedEl.classList.add('selected');
+        }
+    } else {
+        infoEl.textContent = 'No mood logged yet.';
+    }
+}
+
+/* ====== Profile Functions ====== */
+function getProfileDetails() { return read('profile_details', {}); }
+
+function saveProfileDetails() {
+    const details = {
+        name: $('userName').value.trim(),
+        age: $('userAge').value.trim(),
+        education: $('userEducation').value,
+        goal: $('userGoal').value.trim()
+    };
+    write('profile_details', details);
+    showToast('Your details have been saved!');
+}
+
+function loadProfileDetails() {
+    const details = getProfileDetails();
+    $('userName').value = details.name || '';
+    $('userAge').value = details.age || '';
+    $('userEducation').value = details.education || '';
+    $('userGoal').value = details.goal || '';
+}
+
 /* ====== XP & Streaks ====== */
 function getXP(){ return parseInt(read('xp',0) || 0); }
 function setXP(v){ write('xp', v); $('xpPoints').textContent = v; }
@@ -883,7 +1180,7 @@ function updateStreak(){
     const d = datePlusDays(todayISO(), -i);
     const allTasks = getTasks();
     const hasTaskActivity = allTasks.some(t => (t.createdAt && t.createdAt.startsWith(d)) || (t.completedAt && t.completedAt.startsWith(d)));
-    if((getStudyForDay(d).length>0) || (getWorkoutForDay(d).length>0) || hasTaskActivity || getSleepForDay(d)) streak++; else break;
+    if((getStudyForDay(d).length>0) || (getWorkoutForDay(d).length>0) || hasTaskActivity || getSleepForDay(d) || getMoodForDay(d) || getWaterForDay(d).length > 0 || getMeditationForDay(d).length > 0) streak++; else break;
   }
   write('streak', streak); $('streakCount').textContent = streak;
 }
@@ -893,11 +1190,14 @@ function initCharts(){
   const chartConfigs = {
     study: { type:'line', el: 'chartStudy', data: { datasets:[{label:'Hours',borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,0.12)',tension:0.3}]}, options:{plugins:{legend:{display:false}}} },
     workout: { type:'line', el: 'chartWorkout', data: { datasets:[{label:'Minutes',borderColor:'#0ea5a4',backgroundColor:'rgba(14,165,164,0.12)',tension:0.3}]}, options:{plugins:{legend:{display:false}}} },
+    meditation: { type:'line', el: 'chartMeditation', data: { datasets:[{label:'Minutes',borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,0.12)',tension:0.3}]}, options:{plugins:{legend:{display:false}}} },
     tasks: { type:'bar', el: 'chartTasks', data: { datasets:[{label:'Completed',backgroundColor:'#2b7cff'}]}, options:{plugins:{legend:{display:false}}} },
     studyByCat: { type:'bar', el: 'chartStudyByCat', data: { datasets:[{label:'Hours',backgroundColor:'#2b7cff'}]} },
     taskTrend: { type:'line', el: 'chartTaskTrend', data: { datasets:[{label:'Completed',borderColor:'#06b6d4',backgroundColor:'rgba(6,182,212,0.12)'}]} },
     sleep: { type:'line', el: 'chartSleep', data: { datasets:[{label:'Sleep hour',borderColor:'#8b5cf6',tension:0.3}, {label:'Wake hour',borderColor:'#f97316',tension:0.3}]}, options:{scales:{y:{min:0,max:24}}} },
     workoutDist: { type:'doughnut', el: 'chartWorkoutDist', data: { datasets:[{backgroundColor:['#2b7cff','#06b6d4','#8b5cf6','#f97316']}]} },
+    mood: { type: 'line', el: 'chartMood', data: { datasets: [{label:'Mood (1-5)', yAxisID: 'yMood', borderColor: '#f97316', tension: 0.3}, {label:'Tasks Done', yAxisID: 'yTasks', type: 'bar', backgroundColor: 'rgba(43, 124, 255, 0.5)' }] }, options: { scales: { yMood: { type: 'linear', position: 'left', min: 0, max: 6, ticks: { stepSize: 1 } }, yTasks: { type: 'linear', position: 'right', beginAtZero: true, grid: { drawOnChartArea: false } } } } },
+    water: { type: 'bar', el: 'chartWater', data: { datasets:[{label:'Litres', backgroundColor:'rgba(37,99,235,0.7)'}]}, options:{plugins:{legend:{display:false}}} },
   };
   for(const key in chartConfigs){
     const config = chartConfigs[key];
@@ -908,36 +1208,47 @@ function initCharts(){
 function updateDashboard(range='weekly'){
   currentDashboardRange = range;
   let days = getRangeDays(range); let labels = [];
-  let studyData = [], workoutData = [], tasksData = [];
-  let totalStudy=0, totalWorkout=0, totalTasks=0;
+  let studyData = [], workoutData = [], tasksData = [], meditationData = [];
+  let totalStudy=0, totalWorkout=0, totalTasks=0, totalMeditation=0;
   const allTasks = getTasks();
 
   if(range==='yearly'){
     for(const month of days){
-      labels.push(month); let sumStudy=0, sumWork=0, sumTasks=0;
+      labels.push(month); let sumStudy=0, sumWork=0, sumTasks=0, sumMeditation=0;
       const [y,m] = month.split('-'); const daysIn = new Date(y,parseInt(m),0).getDate();
       for(let d=1;d<=daysIn;d++){
         const iso = `${month}-${String(d).padStart(2,'0')}`;
-        sumStudy += totalStudyForDay(iso); sumWork += totalWorkoutForDay(iso);
+        sumStudy += totalStudyForDay(iso); 
+        sumWork += totalWorkoutForDay(iso);
+        sumMeditation += totalMeditationForDay(iso);
         sumTasks += allTasks.filter(t => t.completed && t.completedAt && t.completedAt.startsWith(iso)).length;
       }
-      studyData.push(Number(sumStudy.toFixed(2))); workoutData.push(sumWork); tasksData.push(sumTasks);
-      totalStudy+=sumStudy; totalWorkout+=sumWork; totalTasks+=sumTasks;
+      studyData.push(Number(sumStudy.toFixed(2))); 
+      workoutData.push(sumWork); 
+      meditationData.push(sumMeditation);
+      tasksData.push(sumTasks);
+      totalStudy+=sumStudy; 
+      totalWorkout+=sumWork; 
+      totalMeditation+=sumMeditation;
+      totalTasks+=sumTasks;
     }
   } else {
     for(const day of days){
       labels.push(range==='monthly'? day.split('-')[2] : formatDateLabel(day));
       const s = totalStudyForDay(day); studyData.push(Number(s.toFixed(2))); totalStudy += s;
       const w = totalWorkoutForDay(day); workoutData.push(w); totalWorkout += w;
+      const m = totalMeditationForDay(day); meditationData.push(m); totalMeditation += m;
       const t = allTasks.filter(c => c.completed && c.completedAt && c.completedAt.startsWith(day)).length; tasksData.push(t); totalTasks += t;
     }
   }
   $('selStudy').textContent = `${Number(totalStudy.toFixed(2))} hrs`;
   $('selWorkout').textContent = `${totalWorkout} min`;
+  $('selMeditation').textContent = `${totalMeditation} min`;
   $('selTasks').textContent = `${totalTasks}`;
   updateStreak(); $('selStreak').textContent = read('streak',0);
   charts.study.data.labels = labels; charts.study.data.datasets[0].data = studyData; charts.study.update();
   charts.workout.data.labels = labels; charts.workout.data.datasets[0].data = workoutData; charts.workout.update();
+  charts.meditation.data.labels = labels; charts.meditation.data.datasets[0].data = meditationData; charts.meditation.update();
   charts.tasks.data.labels = labels; charts.tasks.data.datasets[0].data = tasksData; charts.tasks.update();
 }
 function aggregateStudyByCategory(range){
@@ -959,60 +1270,87 @@ function updateAnalytics(range='weekly'){
   charts.studyByCat.data.datasets[0].data = Object.values(categories).map(v=>Number(v.toFixed(2)));
   charts.studyByCat.update();
   
-  const days = getRangeDays(range); let labels = []; let dataSets = {trend:[], sleepS:[], sleepW:[], workout:[]};
+  const days = getRangeDays(range); let labels = []; 
+  let dataSets = {trend:[], sleepS:[], sleepW:[], workout:[], mood: [], moodTasks: [], water: []};
   const allTasks = getTasks();
 
   if(range==='yearly'){
      for(const m of days){
-        labels.push(m); let trend=0, sS=0, sW=0, w=0, sCnt=0;
+        labels.push(m); 
+        let trend=0, sS=0, sW=0, w=0, sCnt=0, moodSum=0, moodCnt=0, moodTasksSum=0, waterSum = 0;
         const [y,mm] = m.split('-');
         for(let d=1;d<=new Date(y,parseInt(mm),0).getDate();d++){
             const iso = `${m}-${String(d).padStart(2,'0')}`;
-            trend += allTasks.filter(t=> t.completed && t.completedAt && t.completedAt.startsWith(iso)).length;
+            const dailyTasks = allTasks.filter(t=> t.completed && t.completedAt && t.completedAt.startsWith(iso)).length;
+            trend += dailyTasks;
             const s = getSleepForDay(iso);
             if(s){ sS+=Number(s.sleep.split(':')[0]); sW+=Number(s.wake.split(':')[0]); sCnt++; }
             w += totalWorkoutForDay(iso);
+            const mood = getMoodForDay(iso);
+            if (mood) { moodSum += MOOD_MAP[mood.mood] || 0; moodCnt++; }
+            moodTasksSum += dailyTasks;
+            waterSum += totalWaterForDay(iso);
         }
-        dataSets.trend.push(trend); dataSets.sleepS.push(sCnt ? Number((sS/sCnt).toFixed(2)) : null);
-        dataSets.sleepW.push(sCnt ? Number((sW/sCnt).toFixed(2)) : null); dataSets.workout.push(w);
+        dataSets.trend.push(trend); 
+        dataSets.sleepS.push(sCnt ? Number((sS/sCnt).toFixed(2)) : null);
+        dataSets.sleepW.push(sCnt ? Number((sW/sCnt).toFixed(2)) : null); 
+        dataSets.workout.push(w);
+        dataSets.mood.push(moodCnt > 0 ? (moodSum/moodCnt).toFixed(1) : null);
+        dataSets.moodTasks.push(moodTasksSum);
+        dataSets.water.push(waterSum);
      }
   } else {
     for(const d of days){
         labels.push(formatDateLabel(d));
-        dataSets.trend.push(allTasks.filter(t=> t.completed && t.completedAt && t.completedAt.startsWith(d)).length);
+        const dailyTasks = allTasks.filter(t=> t.completed && t.completedAt && t.completedAt.startsWith(d)).length
+        dataSets.trend.push(dailyTasks);
         const s = getSleepForDay(d);
         dataSets.sleepS.push(s ? Number(s.sleep.split(':')[0]) : null);
         dataSets.sleepW.push(s ? Number(s.wake.split(':')[0]) : null);
         dataSets.workout.push(totalWorkoutForDay(d));
+        const mood = getMoodForDay(d);
+        dataSets.mood.push(mood ? MOOD_MAP[mood.mood] : null);
+        dataSets.moodTasks.push(dailyTasks);
+        dataSets.water.push(totalWaterForDay(d));
     }
   }
   charts.taskTrend.data.labels = labels; charts.taskTrend.data.datasets[0].data = dataSets.trend; charts.taskTrend.update();
   charts.sleep.data.labels = labels; charts.sleep.data.datasets[0].data = dataSets.sleepS; charts.sleep.data.datasets[1].data = dataSets.sleepW; charts.sleep.update();
   charts.workoutDist.data.labels = labels.slice(0,6); charts.workoutDist.data.datasets[0].data = dataSets.workout.slice(0,6); charts.workoutDist.update();
+  charts.mood.data.labels = labels; charts.mood.data.datasets[0].data = dataSets.mood; charts.mood.data.datasets[1].data = dataSets.moodTasks; charts.mood.update();
+  charts.water.data.labels = labels; charts.water.data.datasets[0].data = dataSets.water; charts.water.update();
 }
-function updateChartsOnDataChange(){ updateDashboard(currentDashboardRange); updateAnalytics(currentAnalyticsRange); }
+function updateChartsOnDataChange(){ 
+    if ($('dashboardSection').classList.contains('active')) updateDashboard(currentDashboardRange);
+    if ($('analyticsSection').classList.contains('active')) updateAnalytics(currentAnalyticsRange);
+}
 
 /* ====== Utilities ====== */
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, (m)=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 function exportToCSV(){
   const range = currentAnalyticsRange || 'weekly'; const days = getRangeDays(range);
-  let rows = [['date','study_hours','workout_mins','tasks_completed','sleep','wake']];
+  let rows = [['date','study_hours','workout_mins', 'meditation_mins', 'tasks_completed','sleep','wake', 'mood', 'water_litres']];
   const allTasks = getTasks();
   if(range==='yearly'){
     for(const m of days){
-      let study=0,work=0,tasks=0,sleep='',wake='';
+      let study=0,work=0,tasks=0,sleep='',wake='', moodStr='', water=0, meditation=0;
       const [y,mm]=m.split('-');
       for(let d=1;d<=new Date(y,parseInt(mm),0).getDate();d++){
         const iso = `${m}-${String(d).padStart(2,'0')}`;
-        study += totalStudyForDay(iso); work += totalWorkoutForDay(iso);
+        study += totalStudyForDay(iso); 
+        work += totalWorkoutForDay(iso);
+        meditation += totalMeditationForDay(iso);
         tasks += allTasks.filter(t=> t.completed && t.completedAt && t.completedAt.startsWith(iso)).length;
         const s = getSleepForDay(iso); if(s){ sleep = s.sleep; wake = s.wake; }
+        const mood = getMoodForDay(iso); if (mood) { moodStr = mood.mood; }
+        water += totalWaterForDay(iso);
       }
-      rows.push([m, study, work, tasks, sleep, wake]);
+      rows.push([m, study.toFixed(2), work, meditation, tasks, sleep, wake, moodStr, water.toFixed(2)]);
     }
   } else {
     for(const d of days){
-      rows.push([d, totalStudyForDay(d), totalWorkoutForDay(d), allTasks.filter(t=> t.completed && t.completedAt && t.completedAt.startsWith(d)).length, (getSleepForDay(d)||{}).sleep||'', (getSleepForDay(d)||{}).wake||'']);
+        const mood = getMoodForDay(d);
+        rows.push([d, totalStudyForDay(d), totalWorkoutForDay(d), totalMeditationForDay(d), allTasks.filter(t=> t.completed && t.completedAt && t.completedAt.startsWith(d)).length, (getSleepForDay(d)||{}).sleep||'', (getSleepForDay(d)||{}).wake||'', mood ? mood.mood : '', totalWaterForDay(d).toFixed(2)]);
     }
   }
   const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
@@ -1024,15 +1362,17 @@ function exportToCSV(){
 /* ====== Init & bindings ====== */
 function updateTodayQuickStats(){
   $('todayDate').textContent = new Date().toLocaleDateString();
-  $('todayStudyHours').textContent = `${totalStudyForDay(todayISO())} hrs`;
+  $('todayStudyHours').textContent = `${totalStudyForDay(todayISO()).toFixed(1)} hrs`;
   $('todayWorkout').textContent = `${totalWorkoutForDay(todayISO())} min`;
+  $('todayWater').textContent = `${totalWaterForDay(todayISO()).toFixed(1)} L`;
+  $('todayMeditation').textContent = `${totalMeditationForDay(todayISO())} min`;
   updateTodayCompletedCount();
 }
 function updateTodayCompletedCount(){ 
     const today = todayISO();
     $('todayCompletedTasks').textContent = getTasks().filter(t => t.completed && t.completedAt && t.completedAt.startsWith(today)).length; 
 }
-function loadHomeQuickStats(){ updateTodayQuickStats(); updateSleepInfo(); $('subTitle').textContent = 'Stay focused — check your progress'; }
+function loadHomeQuickStats(){ updateTodayQuickStats(); updateSleepInfo(); loadTodaysMood(); $('subTitle').textContent = 'Stay focused — check your progress'; }
 
 function migrateTasks() {
     if (read('tasks_migrated')) return;
@@ -1060,7 +1400,7 @@ function initialize(){
   migrateTasks();
   setDailyQuote(); setupNotificationButton();
   $('todayDate').textContent = new Date().toLocaleDateString();
-  initCharts(); loadHomeQuickStats(); loadTasks();
+  initCharts(); loadHomeQuickStats(); loadTasks(); loadProfileDetails();
   updateDashboard('weekly'); updateAnalytics('weekly');
   const savedKey = getApiKey(); if(savedKey) $('apiKeyInput').value = savedKey;
   // AI & Modal events
@@ -1081,8 +1421,7 @@ function initialize(){
 window.addEventListener('load', initialize);
 
 /* Expose some functions to global (for inline handlers) */
-window.showSection = showSection; window.addNewTask = addNewTask; window.loadTasks = loadTasks; window.toggleTask = toggleTask; window.deleteTask = deleteTask; window.logStudy = logStudy; window.logWorkout = logWorkout; window.addQuickTask = addQuickTask; window.logSleep = logSleep; window.updateDashboard = updateDashboard; window.updateAnalytics = updateAnalytics; window.exportToCSV = exportToCSV; window.saveApiKey = saveApiKey; window.saveApiKeyOnEnter = saveApiKeyOnEnter; window.useSuggestion = useSuggestion;
-window.addTarget = addTarget; window.toggleTarget = toggleTarget; window.deleteTarget = deleteTarget;
+window.showSection = showSection; window.addNewTask = addNewTask; window.loadTasks = loadTasks; window.toggleTask = toggleTask; window.deleteTask = deleteTask; window.logStudy = logStudy; window.logWorkout = logWorkout; window.logWater = logWater; window.logMeditation = logMeditation; window.addQuickTask = addQuickTask; window.logSleep = logSleep; window.updateDashboard = updateDashboard; window.updateAnalytics = updateAnalytics; window.exportToCSV = exportToCSV; window.saveApiKey = saveApiKey; window.saveApiKeyOnEnter = saveApiKeyOnEnter; window.useSuggestion = useSuggestion; window.addTarget = addTarget; window.toggleTarget = toggleTarget; window.deleteTarget = deleteTarget; window.logMood = logMood; window.saveProfileDetails = saveProfileDetails;
 
 </script>
 </body>
