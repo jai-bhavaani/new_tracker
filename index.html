@@ -12,16 +12,16 @@
 
   <style>
     :root{
-      --bg:#e9f1ff;
-      --card:#ffffff;
-      --accent:#2b7cff;
-      --accent-dark:#1a5ecf;
-      --muted:#000000;
-      --success:#d4e4ff;
-      --danger:#e04f5f;
-      --glass: rgba(255,255,255,0.6);
-      --shadow: 0 6px 18px rgba(34,60,80,0.08);
-      --max-width:1100px;
+        --bg:#e9f1ff;
+        --card:#ffffff;
+        --accent:#2b7cff;
+        --accent-dark:#1a5ecf;
+        --muted:#000000;
+        --success:#d4e4ff;
+        --danger:#e04f5f;
+        --glass: rgba(255,255,255,0.6);
+        --shadow: 0 6px 18px rgba(34,60,80,0.08);
+        --max-width:1100px;
     }
     /* Dark Mode Toggle */
     .dark { --bg:#0c0c0c; --card: #070707; --accent:#3991fc; --accent-dark:#3e84f4; --muted:#757575; color:#e6eef8; }
@@ -263,6 +263,8 @@
     <div class="header-buttons" style="display:flex;gap:.6rem;align-items:center">
       <button class="btn small ghost" id="notificationBtn" title="Enable Task Reminders"><i class="fas fa-bell"></i><span class="btn-text">&nbsp;Enable Reminders</span></button>
       <button class="btn small" id="exportBtn" title="Export CSV"><i class="fas fa-file-export"></i><span class="btn-text">&nbsp;Export</span></button>
+      <!-- NEW: Moved Profile button here -->
+      <button class="btn small ghost" id="profileNavBtn" title="View Profile" onclick="showSection('profileSection', null)"><i class="fas fa-user-circle"></i></button>
       <button class="btn small ghost" id="darkToggle" title="Toggle Dark Mode"><i class="fas fa-moon"></i></button>
     </div>
   </header>
@@ -289,7 +291,8 @@
             <h3 style="margin:.2rem 0 0.5rem">Quick Actions</h3>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: space-between;">
                 <!-- This button navigates to the targets page -->
-                <button class="btn small ghost" onclick="showSection('targetsSection', document.querySelector('.nav-item[data-target=\'targetsSection\']'))" style="flex: 1 1 120px; justify-content: center;">
+                <!-- MODIFIED: Changed the second argument to null since we are removing the nav item -->
+                <button class="btn small ghost" onclick="showSection('targetsSection', null)" style="flex: 1 1 120px; justify-content: center;">
                     <i class="fas fa-bullseye"></i>&nbsp;Manage Targets
                 </button>
                 <!-- This button opens the new Quick Task modal -->
@@ -448,14 +451,23 @@
     </button>
   </section>
 
-  <!-- Dashboard -->
+  <!-- REMOVED: This entire section has been merged into #analyticsSection
   <section id="dashboardSection" class="section">
-    <h2 style="margin:.2rem 0">Dashboard</h2>
+    ...
+  </section>
+  -->
+
+  <!-- Analytics -->
+  <section id="analyticsSection" class="section">
+    <!-- MODIFIED: Title -->
+    <h2 style="margin:.2rem 0">Dashboard & Analytics</h2>
     <div class="filters">
-      <button class="btn small" onclick="updateDashboard('weekly')">Weekly</button>
-      <button class="btn small ghost" onclick="updateDashboard('monthly')">Monthly</button>
-      <button class="btn small ghost" onclick="updateDashboard('yearly')">Yearly</button>
+      <button class="btn small" onclick="updateAnalytics('weekly')">Weekly</button>
+      <button class="btn small ghost" onclick="updateAnalytics('monthly')">Monthly</button>
+      <button class="btn small ghost" onclick="updateAnalytics('yearly')">Yearly</button>
     </div>
+    
+    <!-- MOVED: Summary cards from dashboard -->
     <div class="summary-cards" style="margin-top:1rem">
         <div class="summary-card"> <div class="muted">Study</div> <div id="selStudy" style="font-weight:800;font-size:1.2rem">0 hrs</div> </div>
         <div class="summary-card"> <div class="muted">Workout</div> <div id="selWorkout" style="font-weight:800;font-size:1.2rem">0 min</div> </div>
@@ -463,23 +475,15 @@
         <div class="summary-card"> <div class="muted">Tasks Done</div> <div id="selTasks" style="font-weight:800;font-size:1.2rem">0</div> </div>
         <div class="summary-card" style="grid-column: 1 / -1;"> <div class="muted">Current Streak</div> <div id="selStreak" style="font-weight:800;font-size:1.2rem">0</div> </div>
     </div>
+    
     <div class="analytics-grid" style="margin-top:1rem">
-        <div class="chart-wrap"> <h4 style="margin:.2rem 0">Study Trend (hrs)</h4> <canvas id="chartStudy" height="140"></canvas> </div>
-        <div class="chart-wrap"> <h4 style="margin:.2rem 0">Workout Trend (mins)</h4> <canvas id="chartWorkout" height="140"></canvas> </div>
-        <div class="chart-wrap"> <h4 style="margin:.2rem 0">Meditation Trend (mins)</h4> <canvas id="chartMeditation" height="140"></canvas> </div>
-        <div class="chart-wrap"> <h4 style="margin:.2rem 0">Tasks Completed</h4> <canvas id="chartTasks" height="140"></canvas> </div>
-    </div>
-  </section>
+      <!-- MOVED: Charts from dashboard -->
+      <div class="chart-wrap"> <h4 style="margin:.2rem 0">Study Trend (hrs)</h4> <canvas id="chartStudy" height="140"></canvas> </div>
+      <div class="chart-wrap"> <h4 style="margin:.2rem 0">Workout Trend (mins)</h4> <canvas id="chartWorkout" height="140"></canvas> </div>
+      <div class="chart-wrap"> <h4 style="margin:.2rem 0">Meditation Trend (mins)</h4> <canvas id="chartMeditation" height="140"></canvas> </div>
+      <div class="chart-wrap"> <h4 style="margin:.2rem 0">Tasks Completed</h4> <canvas id="chartTasks" height="140"></canvas> </div>
 
-  <!-- Analytics -->
-  <section id="analyticsSection" class="section">
-    <h2 style="margin:.2rem 0">Analytics</h2>
-    <div class="filters">
-      <button class="btn small" onclick="updateAnalytics('weekly')">Weekly</button>
-      <button class="btn small ghost" onclick="updateAnalytics('monthly')">Monthly</button>
-      <button class="btn small ghost" onclick="updateAnalytics('yearly')">Yearly</button>
-    </div>
-    <div class="analytics-grid" style="margin-top:1rem">
+      <!-- Existing Analytics charts -->
       <div class="chart-wrap"> <h4 style="margin:.2rem 0">Study by Category</h4> <canvas id="chartStudyByCat" height="140"></canvas> </div>
       <div class="chart-wrap"> <h4 style="margin:.2rem 0">Task Completion Trend</h4> <canvas id="chartTaskTrend" height="140"></canvas> </div>
       <div class="chart-wrap"> <h4 style="margin:.2rem 0">Sleep Patterns (Sleep vs Wake hour)</h4> <canvas id="chartSleep" height="140"></canvas> </div>
@@ -620,7 +624,8 @@
   <!-- AI Chat -->
   <section id="chatSection" class="section">
     <h2 style="margin:.2rem 0">AI Chat</h2>
-    <div class="card" style="margin-top: 1rem; padding: 0.5rem; display: flex; flex-direction: column; height: 70vh;">
+    <!-- Changed height from 70vh to 85vh for a larger chat area on mobile -->
+    <div class="card" style="margin-top: 1rem; padding: 0.5rem; display: flex; flex-direction: column; height: 85vh;">
         <!-- Chat Messages -->
         <div id="chatMessages" style="flex-grow: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
             <!-- Messages render here -->
@@ -744,11 +749,12 @@
   <div class="bottom-nav-inner" role="navigation">
     <div class="nav-item active" data-target="homeSection" onclick="showSection('homeSection', this)"><i class="fas fa-home"></i><span class="nav-text">Home</span></div>
     <div class="nav-item" data-target="tasksSection" onclick="showSection('tasksSection', this)"><i class="fas fa-tasks"></i><span class="nav-text">Tasks</span></div>
-    <div class="nav-item" data-target="dashboardSection" onclick="showSection('dashboardSection', this)"><i class="fas fa-chart-line"></i><span class="nav-text">Dashboard</span></div>
-    <div class="nav-item" data-target="targetsSection" onclick="showSection('targetsSection', this)"><i class="fas fa-bullseye"></i><span class="nav-text">Targets</span></div>
+    <!-- REMOVED: Dashboard button from nav bar -->
+    <!-- <div class="nav-item" data-target="dashboardSection" onclick="showSection('dashboardSection', this)"><i class="fas fa-chart-line"></i><span class="nav-text">Dashboard</span></div> -->
     <div class="nav-item" data-target="analyticsSection" onclick="showSection('analyticsSection', this)"><i class="fas fa-chart-pie"></i><span class="nav-text">Analytics</span></div>
     <div class="nav-item" data-target="learningsSection" onclick="showSection('learningsSection', this)"><i class="fas fa-book-reader"></i><span class="nav-text">Learnings</span></div>
-    <div class="nav-item" data-target="profileSection" onclick="showSection('profileSection', this)"><i class="fas fa-user-circle"></i><span class="nav-text">Profile</span></div>
+    <!-- REMOVED: Profile button from nav bar -->
+    <!-- <div class="nav-item" data-target="profileSection" onclick="showSection('profileSection', this)"><i class="fas fa-user-circle"></i><span class="nav-text">Profile</span></div> -->
     <div class="nav-item" data-target="chatSection" onclick="showSection('chatSection', this)"><i class="fas fa-comments"></i><span class="nav-text">AI Chat</span></div>
   </div>
 </nav>
@@ -766,7 +772,7 @@ const MAX_SESSION_STUDY = 12;
 const MOOD_MAP = { 'terrible': 1, 'bad': 2, 'okay': 3, 'good': 4, 'great': 5 };
 
 let charts = {};
-let currentDashboardRange = 'weekly';
+// REMOVED: let currentDashboardRange = 'weekly';
 let currentAnalyticsRange = 'weekly';
 let notificationInterval = null;
 let chatHistory = [];
@@ -782,13 +788,34 @@ function showSection(id, el){
   $(id).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if(el) el.classList.add('active');
-  if(id==='dashboardSection') updateDashboard(currentDashboardRange);
+  // Add 'active' state to the correct nav item even when profile is clicked from header
+  if(id==='profileSection') {
+    // We don't have a bottom nav item, so don't activate any
+  } else if (el) {
+    el.classList.add('active');
+  } else {
+    // If no element was passed (e.g., header button) and it's not profile,
+    // find the corresponding nav item and activate it.
+    const matchingNavItem = document.querySelector(`.nav-item[data-target="${id}"]`);
+    if (matchingNavItem) matchingNavItem.classList.add('active');
+  }
+
+  // REMOVED: if(id==='dashboardSection') updateDashboard(currentDashboardRange);
   if(id==='analyticsSection') updateAnalytics(currentAnalyticsRange);
   if(id==='homeSection') loadHomeQuickStats();
   if(id==='tasksSection') loadTasks();
   if(id==='targetsSection') { loadTargets(); loadSkillsAndProjects(); } // <-- Modified
   if(id==='learningsSection') loadLearnings(true); // <-- NEW
   if(id==='profileSection') loadProfileDetails();
+  // NEW: Add auto-scroll when switching to chat section
+  if(id==='chatSection') {
+      setTimeout(() => {
+          const chatMessages = $('chatMessages');
+          if (chatMessages) {
+              chatMessages.scrollTop = chatMessages.scrollHeight;
+          }
+      }, 50); // Small delay for rendering
+  }
 }
 
 /* ====== Helper: Date keys & ranges ====== */
@@ -1077,7 +1104,13 @@ function renderChat() {
         else { messageDiv.innerHTML = parseMarkdown(escapeHtml(msg.text)); }
         chatMessages.appendChild(messageDiv);
     });
+    
+    // Made scroll-to-bottom more robust by running it and
+    // queueing a backup call just after the render cycle.
     chatMessages.scrollTop = chatMessages.scrollHeight;
+    setTimeout(() => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }, 0);
 }
 
 async function handleSendMessage() {
@@ -1898,52 +1931,12 @@ function initCharts(){
     charts[key] = new Chart(ctx, { type: config.type, data: { labels: [], datasets: config.data.datasets }, options: { responsive: true, ...config.options } });
   }
 }
+// REMOVED: The entire updateDashboard function
+/*
 function updateDashboard(range='weekly'){
-  currentDashboardRange = range;
-  let days = getRangeDays(range); let labels = [];
-  let studyData = [], workoutData = [], tasksData = [], meditationData = [];
-  let totalStudy=0, totalWorkout=0, totalTasks=0, totalMeditation=0;
-  const allTasks = getTasks();
-
-  if(range==='yearly'){
-    for(const month of days){
-      labels.push(month); let sumStudy=0, sumWork=0, sumTasks=0, sumMeditation=0;
-      const [y,m] = month.split('-'); const daysIn = new Date(y,parseInt(m),0).getDate();
-      for(let d=1;d<=daysIn;d++){
-        const iso = `${month}-${String(d).padStart(2,'0')}`;
-        sumStudy += totalStudyForDay(iso); 
-        sumWork += totalWorkoutForDay(iso);
-        sumMeditation += totalMeditationForDay(iso);
-        sumTasks += allTasks.filter(t => t.completed && t.completedAt && t.completedAt.startsWith(iso)).length;
-      }
-      studyData.push(Number(sumStudy.toFixed(2))); 
-      workoutData.push(sumWork); 
-      meditationData.push(sumMeditation);
-      tasksData.push(sumTasks);
-      totalStudy+=sumStudy; 
-      totalWorkout+=sumWork; 
-      totalMeditation+=sumMeditation;
-      totalTasks+=sumTasks;
-    }
-  } else {
-    for(const day of days){
-      labels.push(range==='monthly'? day.split('-')[2] : formatDateLabel(day));
-      const s = totalStudyForDay(day); studyData.push(Number(s.toFixed(2))); totalStudy += s;
-      const w = totalWorkoutForDay(day); workoutData.push(w); totalWorkout += w;
-      const m = totalMeditationForDay(day); meditationData.push(m); totalMeditation += m;
-      const t = allTasks.filter(c => c.completed && c.completedAt && c.completedAt.startsWith(day)).length; tasksData.push(t); totalTasks += t;
-    }
-  }
-  $('selStudy').textContent = `${Number(totalStudy.toFixed(2))} hrs`;
-  $('selWorkout').textContent = `${totalWorkout} min`;
-  $('selMeditation').textContent = `${totalMeditation} min`;
-  $('selTasks').textContent = `${totalTasks}`;
-  updateStreak(); $('selStreak').textContent = read('streak',0);
-  charts.study.data.labels = labels; charts.study.data.datasets[0].data = studyData; charts.study.update();
-  charts.workout.data.labels = labels; charts.workout.data.datasets[0].data = workoutData; charts.workout.update();
-  charts.meditation.data.labels = labels; charts.meditation.data.datasets[0].data = meditationData; charts.meditation.update();
-  charts.tasks.data.labels = labels; charts.tasks.data.datasets[0].data = tasksData; charts.tasks.update();
+  ...
 }
+*/
 function aggregateStudyByCategory(range){
   const days = getRangeDays(range);
   const categories = { 'College Study':0, 'Online Study':0, 'Self Study':0, 'Coding':0 };
@@ -2009,12 +2002,19 @@ function updateAnalytics(range='weekly'){
  
   const days = getRangeDays(range); let labels = []; 
   let dataSets = {trend:[], sleepS:[], sleepW:[], workout:[], mood: [], moodTasks: [], water: []};
+  // NEW: Added data arrays for the merged charts
+  let studyData = [], workoutData = [], tasksData = [], meditationData = [];
+  let totalStudy=0, totalWorkout=0, totalTasks=0, totalMeditation=0;
+
   const allTasks = getTasks();
 
   if(range==='yearly'){
      for(const m of days){
         labels.push(m); 
         let trend=0, sS=0, sW=0, w=0, sCnt=0, moodSum=0, moodCnt=0, moodTasksSum=0, waterSum = 0;
+        // NEW: Add dashboard data calcs
+        let sumStudy=0, sumWork=0, sumTasks=0, sumMeditation=0;
+        
         const [y,mm] = m.split('-');
         for(let d=1;d<=new Date(y,parseInt(mm),0).getDate();d++){
             const iso = `${m}-${String(d).padStart(2,'0')}`;
@@ -2027,6 +2027,12 @@ function updateAnalytics(range='weekly'){
             if (mood) { moodSum += MOOD_MAP[mood.mood] || 0; moodCnt++; }
             moodTasksSum += dailyTasks;
             waterSum += totalWaterForDay(iso);
+
+            // NEW: Add dashboard data calcs
+            sumStudy += totalStudyForDay(iso); 
+            sumWork += totalWorkoutForDay(iso);
+            sumMeditation += totalMeditationForDay(iso);
+            sumTasks += dailyTasks; // Already calculated
         }
         dataSets.trend.push(trend); 
         dataSets.sleepS.push(sCnt ? Number((sS/sCnt).toFixed(2)) : null);
@@ -2035,6 +2041,16 @@ function updateAnalytics(range='weekly'){
         dataSets.mood.push(moodCnt > 0 ? (moodSum/moodCnt).toFixed(1) : null);
         dataSets.moodTasks.push(moodTasksSum);
         dataSets.water.push(waterSum);
+
+        // NEW: Add dashboard data calcs
+        studyData.push(Number(sumStudy.toFixed(2))); 
+        workoutData.push(sumWork); 
+        meditationData.push(sumMeditation);
+        tasksData.push(sumTasks);
+        totalStudy+=sumStudy; 
+        totalWorkout+=sumWork; 
+        totalMeditation+=sumMeditation;
+        totalTasks+=sumTasks;
      }
   } else {
     for(const d of days){
@@ -2049,8 +2065,27 @@ function updateAnalytics(range='weekly'){
         dataSets.mood.push(mood ? MOOD_MAP[mood.mood] : null);
         dataSets.moodTasks.push(dailyTasks);
         dataSets.water.push(totalWaterForDay(d));
+
+        // NEW: Add dashboard data calcs
+        const s_dash = totalStudyForDay(d); studyData.push(Number(s_dash.toFixed(2))); totalStudy += s_dash;
+        const w_dash = totalWorkoutForDay(d); workoutData.push(w_dash); totalWorkout += w_dash;
+        const m_dash = totalMeditationForDay(d); meditationData.push(m_dash); totalMeditation += m_dash;
+        const t_dash = dailyTasks; tasksData.push(t_dash); totalTasks += t_dash;
     }
   }
+
+  // MOVED: From updateDashboard
+  $('selStudy').textContent = `${Number(totalStudy.toFixed(2))} hrs`;
+  $('selWorkout').textContent = `${totalWorkout} min`;
+  $('selMeditation').textContent = `${totalMeditation} min`;
+  $('selTasks').textContent = `${totalTasks}`;
+  updateStreak(); $('selStreak').textContent = read('streak',0);
+  charts.study.data.labels = labels; charts.study.data.datasets[0].data = studyData; charts.study.update();
+  charts.workout.data.labels = labels; charts.workout.data.datasets[0].data = workoutData; charts.workout.update();
+  charts.meditation.data.labels = labels; charts.meditation.data.datasets[0].data = meditationData; charts.meditation.update();
+  charts.tasks.data.labels = labels; charts.tasks.data.datasets[0].data = tasksData; charts.tasks.update();
+
+  // Existing analytics updates
   charts.taskTrend.data.labels = labels; charts.taskTrend.data.datasets[0].data = dataSets.trend; charts.taskTrend.update();
   charts.sleep.data.labels = labels; charts.sleep.data.datasets[0].data = dataSets.sleepS; charts.sleep.data.datasets[1].data = dataSets.sleepW; charts.sleep.update();
   charts.workoutDist.data.labels = labels.slice(0,6); charts.workoutDist.data.datasets[0].data = dataSets.workout.slice(0,6); charts.workoutDist.update();
@@ -2058,7 +2093,7 @@ function updateAnalytics(range='weekly'){
   charts.water.data.labels = labels; charts.water.data.datasets[0].data = dataSets.water; charts.water.update();
 }
 function updateChartsOnDataChange(){ 
-    if ($('dashboardSection').classList.contains('active')) updateDashboard(currentDashboardRange);
+    // REMOVED: if ($('dashboardSection').classList.contains('active')) updateDashboard(currentDashboardRange);
     if ($('analyticsSection').classList.contains('active')) updateAnalytics(currentAnalyticsRange);
 }
 
@@ -2170,7 +2205,8 @@ function initialize(){
   setDailyQuote(); setupNotificationButton();
   $('todayDate').textContent = new Date().toLocaleDateString();
   initCharts(); loadHomeQuickStats(); loadTasks(); loadProfileDetails();
-  updateDashboard('weekly'); updateAnalytics('weekly');
+  // REMOVED: updateDashboard('weekly');
+  updateAnalytics('weekly');
   
   // AI & Modal events
   $('getMotivationBtn').addEventListener('click', getDailyMotivation);
@@ -2225,13 +2261,22 @@ function initialize(){
 window.addEventListener('load', initialize);
 
 /* Expose some functions to global (for inline handlers) */
-window.showSection = showSection; window.addNewTask = addNewTask; window.loadTasks = loadTasks; window.toggleTask = toggleTask; window.deleteTask = deleteTask; window.logStudy = logStudy; window.logWorkout = logWorkout; window.logWater = logWater; window.logMeditation = logMeditation; window.addQuickTask = addQuickTask; window.logSleep = logSleep; window.updateDashboard = updateDashboard; window.updateAnalytics = updateAnalytics; window.exportToCSV = exportToCSV; 
+window.showSection = showSection; window.addNewTask = addNewTask; window.loadTasks = loadTasks; window.toggleTask = toggleTask; window.deleteTask = deleteTask; window.logStudy = logStudy; window.logWorkout = logWorkout; window.logWater = logWater; window.logMeditation = logMeditation; window.addQuickTask = addQuickTask; window.logSleep = logSleep; 
+// REMOVED: updateDashboard from window
+window.updateAnalytics = updateAnalytics; window.exportToCSV = exportToCSV; 
 window.useSuggestion = useSuggestion; window.addTarget = addTarget; window.toggleTarget = toggleTarget; window.deleteTarget = deleteTarget; window.logMood = logMood; window.saveProfileDetails = saveProfileDetails;
 window.addSkill = addSkill; window.deleteSkill = deleteSkill; window.addProject = addProject; window.deleteProject = deleteProject; // <-- NEW
 window.logLearning = logLearning; window.loadLearnings = loadLearnings; window.toggleTagFilter = toggleTagFilter; window.deleteLearning = deleteLearning; // <-- NEW
 window.startWeeklyReview = startWeeklyReview; // <-- NEW
 
+
+
+
 </script>
 </body>
 </html>
+
+
+
+
 
