@@ -12,20 +12,34 @@
 
   <style>
     :root{
-        --bg:#e9f1ff;
-        --card:#ffffff;
-        --accent:#2b7cff;
-        --accent-dark:#1a5ecf;
-        --muted:#000000;
-        --success:#d4e4ff;
-        --danger:#e04f5f;
-        --glass: rgba(255,255,255,0.6);
+        /* MODIFIED: New Light Mode Palette */
+        --bg: #f4fff3e3; /* Very light cool grey */
+        --card: #cdf6f189;
+        --accent: #20a78b; /* Main Teal */
+        --accent-dark: #0f7d66; /* Darker Teal */
+        --muted: #596373; /* Slate Grey for text */
+        --success: #e9f9f6; /* Light Mint */
+        --danger: #e04f5f;
+        --glass: rgba(255, 255, 255, 0.7);
         --shadow: 0 6px 18px rgba(34,60,80,0.08);
         --max-width:1100px;
+        --text-color: #2c3e50; /* New: Default text color */
     }
     /* Dark Mode Toggle */
-    .dark { --bg:#0c0c0c; --card: #070707; --accent:#3991fc; --accent-dark:#3e84f4; --muted:#757575; color:#e6eef8; }
-    html,body{height:100%;margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;color:#007bff;background:linear-gradient(180deg,var(--bg),#dfeeff); }
+    .dark { 
+        /* MODIFIED: New Dark Mode Palette */
+        --bg: #1a2026; /* Dark Slate */
+        --card: #212930; /* Darker Slate */
+        --accent: #3dd1b0; /* Bright Teal */
+        --accent-dark: #5ee0c4; /* Brighter Teal */
+        --muted: #98a3b3; /* Light Grey */
+        --success: #206051; /* Dark Mint */
+        --glass: rgba(33, 41, 48, 0.7);
+        --text-color: #e6eef8; /* Existing */
+        color: var(--text-color); 
+    }
+    /* MODIFIED: Cleaned up background and set default text color */
+    html,body{height:100%;margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;color:var(--text-color);background:var(--bg); }
     .app{max-width:var(--max-width);padding-bottom:80px;    box-sizing:border-box;}
     header.main-header{display:flex;align-items:center;justify-content:space-between;padding:1rem }
     header .title{display:flex;gap:0.75rem;align-items:center}
@@ -46,9 +60,11 @@
     .section.active{display:block;opacity:1;transform:none}
     /* Bottom nav */
     .bottom-nav{position:fixed;left:0;right:0;bottom:14px;display:flex;justify-content:center;pointer-events:none}
-    .bottom-nav-inner{width:100%;max-width:var(--max-width);background:linear-gradient(180deg, rgb(255, 255, 255), rgba(255,255,255,0.75));border-radius:18px;box-shadow:0 12px 30px rgba(10,20,40,0.12);display:flex;justify-content:space-around;padding:.6rem;pointer-events:auto}
+    /* MODIFIED: Use --glass variable and add blur */
+    .bottom-nav-inner{width:100%;max-width:var(--max-width);background:var(--glass);backdrop-filter: blur(8px);border-radius:18px;box-shadow:0 12px 30px rgba(10,20,40,0.12);display:flex;justify-content:space-around;padding:.6rem;pointer-events:auto}
     .nav-item{text-align:center;padding:.45rem .35rem;border-radius:12px;color:var(--muted);cursor:pointer}
-    .nav-item.active{background:linear-gradient(90deg, rgba(4, 100, 255, 0.12), rgba(26,94,207,0.07));color:var(--accent-dark);font-weight:700}
+    /* MODIFIED: Use --success variable */
+    .nav-item.active{background:var(--success);color:var(--accent-dark);font-weight:700}
     .nav-item i{display:block;font-size:1.2rem;margin-bottom:4px}
     /* NEW: Class for nav text */
     .nav-text {
@@ -96,7 +112,8 @@
 
     /* Dashboard summary */
     .summary-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
-    .summary-card{padding:1rem;border-radius:12px;background:linear-gradient(180deg,#2388fa,#070707);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:.5rem}
+    /* MODIFIED: Use accent gradient and set white text */
+    .summary-card{padding:1rem;border-radius:12px;background:linear-gradient(180deg,var(--accent),var(--accent-dark));color: white;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:.5rem}
     .chart-wrap{background:var(--card);border-radius:12px;padding:1rem;box-shadow:var(--shadow);margin-bottom:1rem}
    
     /* Helper classes for forms */
@@ -133,8 +150,9 @@
     /* AI Chat Styles */
     .chat-message { padding: .75rem 1rem; border-radius: 12px; max-width: 80%; line-height: 1.5; word-wrap: break-word; }
     .chat-user { background-color: var(--accent); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-    .chat-ai { background-color: #f0f4f9; color: #333; align-self: flex-start; border-bottom-left-radius: 4px; }
-    .dark .chat-ai { background-color: #1a2433; color: #e6eef8; }
+    /* MODIFIED: Use variables for theme consistency */
+    .chat-ai { background-color: var(--bg); color: var(--text-color); align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid rgba(0,0,0,0.05); }
+    .dark .chat-ai { background-color: var(--card); color: var(--text-color); border: 1px solid rgba(255,255,255,0.1); }
     .typing-indicator span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: var(--muted); animation: bounce 1.4s infinite ease-in-out both; }
     .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
     .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
@@ -168,7 +186,8 @@
     .mood-selector { display: flex; justify-content: space-around; margin-top: 1rem; }
     .mood-option { font-size: 2rem; cursor: pointer; transition: transform 0.2s ease; padding: 0.5rem; border-radius: 50%; }
     .mood-option:hover { transform: scale(1.2); }
-    .mood-option.selected { background-color: rgba(43, 124, 255, 0.15); transform: scale(1.1); }
+    /* MODIFIED: Use --success variable */
+    .mood-option.selected { background-color: var(--success); transform: scale(1.1); }
 
     /* NEW: Learning Journal Styles */
     .learning-item {
@@ -199,6 +218,32 @@
         background: var(--accent);
         color: white;
         border-color: var(--accent);
+    }
+    /* NEW: Styles for Log Activity Modal */
+    .log-tabs {
+        display: flex; 
+        gap: 0.5rem; 
+        border-bottom: 1px solid rgba(0,0,0,0.1); 
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+    }
+    .dark .log-tabs {
+        border-bottom-color: rgba(255,255,255,0.1);
+    }
+    .log-tabs .btn.active {
+        background: var(--success);
+        color: var(--accent-dark);
+    }
+    .dark .log-tabs .btn.active {
+        background: var(--accent);
+        color: white;
+    }
+    .log-tab-content {
+        display: none; /* Hidden by default */
+        animation: fadeIn 0.3s ease;
+    }
+    .log-tab-content.active {
+        display: block; /* Shown by JS */
     }
     /* End New Styles */
 
@@ -295,9 +340,9 @@
                 <button class="btn small ghost" onclick="showSection('targetsSection', null)" style="flex: 1 1 120px; justify-content: center;">
                     <i class="fas fa-bullseye"></i>&nbsp;Manage Targets
                 </button>
-                <!-- This button opens the new Quick Task modal -->
-                <button class="btn small ghost" onclick="$('quickTaskModal').style.display='block'" style="flex: 1 1 120px; justify-content: center;">
-                    <i class="fas fa-bolt"></i>&nbsp;Quick Task
+                <!-- MODIFIED: This button now opens the unified "Log Activity" modal -->
+                <button class="btn small ghost" onclick="$('logActivityModal').style.display='block'; showLogTab('task');" style="flex: 1 1 120px; justify-content: center;">
+                    <i class="fas fa-plus"></i>&nbsp;Log Activity
                 </button>
                 <!-- This button opens the existing API Key modal -->
                 <button class="btn small ghost" onclick="$('apiKeyModal').style.display='block'" style="flex: 1 1 120px; justify-content: center;">
@@ -340,62 +385,56 @@
           </div>
         </div>
         
+        <!-- REMOVED: Log Study Card -->
+        <!--
         <div class="card">
           <h3 style="margin:.2rem 0">Log Study</h3>
-          <div class="muted">Study Hours (max per session: 12, per day: 24)</div>
-          <!-- Added input for study topic -->
-          <input id="studyTopic" type="text" placeholder="What did you study? (e.g., 'Calculus Chapter 3')" style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
-          <!-- NEW: Link to Skill/Project -->
-          <select id="studyLink" style="margin-bottom: 0.5rem;">
-            <option value="">-- Link to Skill/Project (Optional) --</option>
-            <!-- Options will be populated by JS -->
-          </select>
-          <div class="form-row">
-            <input id="studyHours" type="number" min="0.1" max="12" step="0.1" placeholder="Hours (e.g., 1.5)">
-            <select id="studyCategory"> <option value="College Study">College Study</option> <option value="Online Study">Online Study</option> <option value="Self Study">Self Study</option> <option value="Coding">Coding</option> </select>
-            <button class="btn" onclick="logStudy()"><i class="fas fa-book"></i> Add</button>
-          </div>
+          ...
         </div>
+        -->
+        
+        <!-- REMOVED: Log Workout Card -->
+        <!--
         <div class="card" style="margin-top:1rem">
           <h3 style="margin:.2rem 0">Log Workout</h3>
-          <div class="muted">Minutes of workout</div>
-          <div class="form-row">
-            <input id="workoutMins" type="number" min="1" step="1" placeholder="Minutes">
-            <button class="btn" onclick="logWorkout()"><i class="fas fa-dumbbell"></i> Add</button>
-          </div>
+          ...
         </div>
+        -->
+        
+        <!-- REMOVED: Log Water Card -->
+        <!--
         <div class="card" style="margin-top:1rem">
             <h3 style="margin:.2rem 0">Log Water Intake</h3>
-            <div class="muted">Litres of water</div>
-            <div class="form-row">
-              <input id="waterLitres" type="number" min="0.1" step="0.1" placeholder="Litres (e.g., 2.5)">
-              <button class="btn" onclick="logWater()"><i class="fas fa-tint"></i> Add</button>
-            </div>
+            ...
         </div>
+        -->
+        
+        <!-- REMOVED: Log Meditation Card -->
+        <!--
         <div class="card" style="margin-top:1rem">
             <h3 style="margin:.2rem 0">Log Meditation</h3>
-            <div class="muted">Minutes of meditation</div>
-            <div class="form-row">
-                <input id="meditationMins" type="number" min="1" step="1" placeholder="Minutes">
-                <button class="btn" onclick="logMeditation()"><i class="fas fa-om"></i> Add</button>
-            </div>
+            ...
         </div>
+        -->
         
         <!-- REMOVED: Old Log Learning Card -->
         <!-- This card's content is now in 'logLearningModal' -->
         
       </div>
       <div style="flex:1;min-width:300px">
+        <!-- REMOVED: Sleep / Wake Card -->
+        <!--
         <div class="card">
           <h3 style="margin:.2rem 0">Sleep / Wake</h3>
-          <div class="muted">Log sleep and wake-up times (stored per day)</div>
-          <div class="form-row" style="align-items:center">
-            <input id="sleepTime" type="time">
-            <input id="wakeTime" type="time">
-            <button class="btn" onclick="logSleep()"><i class="fas fa-bed"></i> Save</button>
-          </div>
+          ...
           <div style="margin-top:.6rem" id="sleepInfo"></div>
         </div>
+        -->
+        <!-- RETAINED: Sleep info div, moved outside the removed card so it's still on the home page -->
+        <div class="card" id="sleepInfo" style="margin-bottom: 1rem; padding: 0.75rem 1rem;">
+            <!-- Sleep info will be populated here by logSleep() -->
+        </div>
+        
         <div class="card" style="margin-top:1rem">
             <h3 style="margin:.2rem 0">Your Targets</h3>
             <div class="muted">Review and manage your weekly, monthly, and yearly goals.</div>
@@ -580,8 +619,14 @@
 
     <!-- Entries List -->
     <div class="card" style="margin-top: 1rem;">
-        <h3 style="margin:.2rem 0">All Entries</h3>
-        <div id="learningsList" style="display:flex;flex-direction:column;gap:.75rem; margin-top: 1rem;">
+        <!-- MODIFIED: Added button row -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin:.2rem 0">All Entries</h3>
+            <button class="btn small" onclick="$('logLearningModal').style.display='block'">
+                <i class="fas fa-plus"></i>&nbsp;Log New Entry
+            </button>
+        </div>
+        <div id="learningsList" style="display:flex;flex-direction:column;gap:.75rem;">
             <!-- Learnings will be loaded here -->
         </div>
     </div>
@@ -660,34 +705,89 @@
   </div>
 </div>
 
-<!-- API Key Modal -->
-<div id="apiKeyModal" class="modal">
+<!-- Quick Task Modal - MODIFIED into Log Activity Modal -->
+<div id="logActivityModal" class="modal"> <!-- MODIFIED: ID -->
   <div class="modal-content">
-    <span id="closeApiKeyModal" class="close-modal">&times;</span>
-    <h3 style="margin:.2rem 0">Set Your Gemini API Key</h3>
-    <div class="muted">To enable AI features, please provide your API key. You can get one from Google AI Studio.</div>
-    <input id="apiKeyInput" type="password" placeholder="Enter your API key here" style="margin-top: 1rem;">
-    <div class="form-row" style="margin-top: 1rem; justify-content: space-between;">
-        <button class="btn ghost" id="removeApiKeyBtn" style="flex: 1; justify-content: center;"><i class="fas fa-trash"></i> Remove Key</button>
-        <button class="btn" id="saveApiKeyBtn" style="flex: 2; justify-content: center;"><i class="fas fa-save"></i> Save Key</button>
+    <span id="closeLogActivityModal" class="close-modal">&times;</span> <!-- MODIFIED: ID -->
+    
+    <!-- NEW: Tab Navigation -->
+    <div class="log-tabs">
+        <button id="logTab-task" class="btn small ghost active" onclick="showLogTab('task')">Task</button>
+        <button id="logTab-study" class="btn small ghost" onclick="showLogTab('study')">Study</button>
+        <button id="logTab-workout" class="btn small ghost" onclick="showLogTab('workout')">Workout</button>
+        <button id="logTab-wellness" class="btn small ghost" onclick="showLogTab('wellness')">Wellness</button>
     </div>
-  </div>
-</div>
 
-<!-- Quick Task Modal -->
-<div id="quickTaskModal" class="modal">
-  <div class="modal-content">
-    <span id="closeQuickTaskModal" class="close-modal">&times;</span>
-    <h3 style="margin:.2rem 0">Quick Task</h3>
-    <div class="muted">Add quick task with time/duration</div>
-    <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem">
-        <input id="quickTaskTitle" placeholder="Title">
-        <div class="form-row">
-            <input id="quickTaskTime" type="time">
-            <input id="quickTaskDuration" type="number" min="1" placeholder="Duration (mins)">
-            <button class="btn" onclick="addQuickTask()"><i class="fas fa-bolt"></i> Add</button>
+    <!-- Tab Content: Task (Original Quick Task) -->
+    <div id="logContent-task" class="log-tab-content active">
+        <h3 style="margin:.2rem 0">Quick Task</h3>
+        <div class="muted">Add quick task with time/duration</div>
+        <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem">
+            <input id="quickTaskTitle" placeholder="Title">
+            <div class="form-row">
+                <input id="quickTaskTime" type="time">
+                <input id="quickTaskDuration" type="number" min="1" placeholder="Duration (mins)">
+                <!-- MODIFIED: Removed modal close from onclick -->
+                <button class="btn" onclick="addQuickTask()"><i class="fas fa-bolt"></i> Add</button>
+            </div>
         </div>
     </div>
+
+    <!-- NEW: Tab Content: Study (Moved from Home) -->
+    <div id="logContent-study" class="log-tab-content">
+        <h3 style="margin:.2rem 0">Log Study</h3>
+        <div class="muted">Study Hours (max per session: 12, per day: 24)</div>
+        <input id="studyTopic" type="text" placeholder="What did you study? (e.g., 'Calculus Chapter 3')" style="margin-top: 0.5rem; margin-bottom: 0.5rem; width: 100%;">
+        <select id="studyLink" style="margin-bottom: 0.5rem; width: 100%;">
+            <option value="">-- Link to Skill/Project (Optional) --</option>
+            <!-- Options will be populated by JS -->
+        </select>
+        <div class="form-row">
+            <input id="studyHours" type="number" min="0.1" max="12" step="0.1" placeholder="Hours (e.g., 1.5)">
+            <select id="studyCategory"> <option value="College Study">College Study</option> <option value="Online Study">Online Study</option> <option value="Self Study">Self Study</option <option value="Coding">Coding</option> </select>
+            <!-- MODIFIED: Removed modal close from onclick -->
+            <button class="btn" onclick="logStudy()"><i class="fas fa-book"></i> Add</button>
+        </div>
+    </div>
+    
+    <!-- NEW: Tab Content: Workout (Moved from Home) -->
+    <div id="logContent-workout" class="log-tab-content">
+        <h3 style="margin:.2rem 0">Log Workout</h3>
+        <div class="muted">Minutes of workout</div>
+        <div class="form-row">
+            <input id="workoutMins" type="number" min="1" step="1" placeholder="Minutes">
+            <!-- MODIFIED: Removed modal close from onclick -->
+            <button class="btn" onclick="logWorkout()"><i class="fas fa-dumbbell"></i> Add</button>
+        </div>
+    </div>
+    
+    <!-- NEW: Tab Content: Wellness (Moved from Home) -->
+    <div id="logContent-wellness" class="log-tab-content">
+        <h3 style="margin:.2rem 0">Log Wellness</h3>
+        
+        <div class="muted" style="margin-top: 1rem;">Log Water Intake (Litres)</div>
+        <div class="form-row">
+          <input id="waterLitres" type="number" min="0.1" step="0.1" placeholder="Litres (e.g., 2.5)">
+          <!-- MODIFIED: Removed modal close from onclick -->
+          <button class="btn" onclick="logWater()"><i class="fas fa-tint"></i> Add Water</button>
+        </div>
+
+        <div class="muted" style="margin-top: 1rem;">Log Meditation (Minutes)</div>
+        <div class="form-row">
+            <input id="meditationMins" type="number" min="1" step="1" placeholder="Minutes">
+            <!-- MODIFIED: Removed modal close from onclick -->
+            <button class="btn" onclick="logMeditation()"><i class="fas fa-om"></i> Add Meditation</button>
+        </div>
+
+        <div class="muted" style="margin-top: 1rem;">Log Sleep / Wake Times</div>
+        <div class="form-row" style="align-items:center">
+            <input id="sleepTime" type="time" title="Sleep Time">
+            <input id="wakeTime" type="time" title="Wake Time">
+            <!-- MODIFIED: Removed modal close from onclick -->
+            <button class="btn" onclick="logSleep()"><i class="fas fa-bed"></i> Save Sleep</button>
+        </div>
+    </div>
+
   </div>
 </div>
 
@@ -745,6 +845,20 @@
   </div>
 </div>
 
+<!-- API Key Modal -->
+<div id="apiKeyModal" class="modal">
+    <div class="modal-content" style="max-width: 450px;">
+        <span id="closeApiKeyModal" class="close-modal">&times;</span>
+        <h3 style="margin:.2rem 0">Gemini API Key</h3>
+        <div class="muted" style="margin: 0.5rem 0 1.5rem;">Your API key is stored locally in your browser and never sent to any server except Google's.</div>
+        <input id="apiKeyInput" type="password" placeholder="Enter your Gemini API Key">
+        <div class="form-row" style="gap: 1rem; justify-content: center; margin-top: 1rem;">
+            <button class="btn ghost" id="removeApiKeyBtn" style="flex: 1;">Remove Key</button>
+            <button class="btn" id="saveApiKeyBtn" style="flex: 2;">Save Key</button>
+        </div>
+    </div>
+</div>
+
 <nav class="bottom-nav" aria-hidden="false">
   <div class="bottom-nav-inner" role="navigation">
     <div class="nav-item active" data-target="homeSection" onclick="showSection('homeSection', this)"><i class="fas fa-home"></i><span class="nav-text">Home</span></div>
@@ -758,6 +872,31 @@
     <div class="nav-item" data-target="chatSection" onclick="showSection('chatSection', this)"><i class="fas fa-comments"></i><span class="nav-text">AI Chat</span></div>
   </div>
 </nav>
+
+<!-- NEW: Script for tab switching in the log modal -->
+<script>
+    // REMOVED: Helper function const $ = (id) => document.getElementById(id);
+    // It's defined in the main script block.
+
+    function showLogTab(tabName) {
+        // Hide all tab content
+        document.querySelectorAll('.log-tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        
+        // Deactivate all tab buttons
+        document.querySelectorAll('.log-tabs .btn').forEach(button => {
+            button.classList.remove('active');
+        });
+        
+        // Show the selected tab content
+        $(`logContent-${tabName}`).classList.add('active');
+        
+        // Activate the selected tab button
+        $(`logTab-${tabName}`).classList.add('active');
+    }
+</script>
+
 
 <script>
 /*
@@ -817,6 +956,8 @@ function showSection(id, el){
       }, 50); // Small delay for rendering
   }
 }
+
+
 
 /* ====== Helper: Date keys & ranges ====== */
 function todayISO(){ 
@@ -1269,6 +1410,7 @@ function logStudy(){
   addXP(Math.round(hoursInput*20));
   updateChartsOnDataChange();
   updateTodayQuickStats();
+  $('logActivityModal').style.display = 'none'; // <-- NEW: Close modal
 }
 function getWorkoutForDay(dayISO){ return read('workouts_' + dayISO, []); }
 function saveWorkoutForDay(dayISO, arr){ write('workouts_' + dayISO, arr); }
@@ -1282,6 +1424,7 @@ function logWorkout(){
   showToast(`${mins} min workout added!`); addXP(Math.round(mins/6));
   updateChartsOnDataChange();
   updateTodayQuickStats();
+  $('logActivityModal').style.display = 'none'; // <-- NEW: Close modal
 }
 function getWaterForDay(dayISO){ return read('water_' + dayISO, []); }
 function saveWaterForDay(dayISO, arr){ write('water_' + dayISO, arr); }
@@ -1298,6 +1441,7 @@ function logWater() {
     addXP(Math.round(litres * 5));
     updateChartsOnDataChange();
     updateTodayQuickStats();
+    $('logActivityModal').style.display = 'none'; // <-- NEW: Close modal
 }
 function getMeditationForDay(dayISO){ return read('meditation_' + dayISO, []); }
 function saveMeditationForDay(dayISO, arr){ write('meditation_' + dayISO, arr); }
@@ -1314,6 +1458,7 @@ function logMeditation() {
     addXP(Math.round(mins / 2));
     updateChartsOnDataChange();
     updateTodayQuickStats();
+    $('logActivityModal').style.display = 'none'; // <-- NEW: Close modal
 }
 function getSleepForDay(dayISO){ return read('sleep_' + dayISO, null); }
 function saveSleepForDay(dayISO, obj){ write('sleep_' + dayISO, obj); }
@@ -1323,14 +1468,7 @@ function logSleep(){
   saveSleepForDay(todayISO(), { sleep, wake, ts: new Date().toISOString() });
   $('sleepTime').value=''; $('wakeTime').value='';
   showToast('Sleep times saved'); updateSleepInfo(); updateChartsOnDataChange();
-}
-function updateSleepInfo(){
-  const s = getSleepForDay(todayISO());
-  if(!s){ $('sleepInfo').textContent='No sleep data for today'; return; }
-  const sleepDate = new Date(`${todayISO()}T${s.sleep}`); let wakeDate = new Date(`${todayISO()}T${s.wake}`);
-  if(wakeDate <= sleepDate) wakeDate.setDate(wakeDate.getDate()+1);
-  const diff = (wakeDate - sleepDate)/3600000;
-  $('sleepInfo').textContent = `Sleep: ${s.sleep} — Wake: ${s.wake} — Duration: ${diff.toFixed(2)} hrs`;
+  $('logActivityModal').style.display = 'none'; // <-- NEW: Close modal
 }
 function getTasks(){ return read('tasks', []); }
 function saveTasks(arr){ write('tasks', arr); }
@@ -1355,7 +1493,7 @@ function addQuickTask(){
   saveTasks(tasks);
   $('quickTaskTitle').value=''; $('quickTaskTime').value=''; $('quickTaskDuration').value='';
   showToast('Quick task added'); loadTasks(); updateChartsOnDataChange();
-  $('quickTaskModal').style.display = 'none'; // <-- Close modal on success
+  $('logActivityModal').style.display = 'none'; // <-- MODIFIED: Close correct modal
 }
 function addDurationToTime(timeStr, mins){
   const [hh,mm] = timeStr.split(':').map(Number);
@@ -1898,6 +2036,18 @@ function loadProfileDetails() {
 function getXP(){ return parseInt(read('xp',0) || 0); }
 function setXP(v){ write('xp', v); $('xpPoints').textContent = v; }
 function addXP(amount){ setXP(getXP() + amount); }
+function updateSleepInfo(){
+  const s = getSleepForDay(todayISO());
+  if(s){
+    const [sh,sm] = s.sleep.split(':').map(Number);
+    const [wh,wm] = s.wake.split(':').map(Number);
+    const sleepT = sh*60+sm; const wakeT = wh*60+wm;
+    let diff = wakeT > sleepT ? (wakeT-sleepT) : (1440 - sleepT + wakeT);
+    $('sleepInfo').innerHTML = `Last Sleep: <strong>${s.sleep}</strong> - <strong>${s.wake}</strong> (${(diff/60).toFixed(1)} hrs)`;
+  } else {
+    $('sleepInfo').innerHTML = 'No sleep data for today. Log it in the Wellness tab.';
+  }
+}
 function updateStreak(){
   let streak = 0;
   for(let i=0;i<365;i++){
@@ -2223,8 +2373,8 @@ function initialize(){
   $('removeApiKeyBtn').addEventListener('click', removeApiKey);
   $('apiKeyInput').addEventListener('keyup', (event) => { if (event.key === 'Enter') saveApiKey(); });
   
-  // NEW: Quick Task Modal Event
-  $('closeQuickTaskModal').onclick = () => $('quickTaskModal').style.display = 'none';
+  // MODIFIED: Quick Task Modal Event -> Log Activity Modal Event
+  $('closeLogActivityModal').onclick = () => $('logActivityModal').style.display = 'none';
 
   // NEW: Add Task Modal Event
   $('closeNewTaskModal').onclick = () => $('addNewTaskModal').style.display = 'none';
@@ -2235,7 +2385,7 @@ function initialize(){
   window.onclick = (event) => { 
     if (event.target == $('aiModal')) $('aiModal').style.display = "none";
     if (event.target == $('apiKeyModal')) $('apiKeyModal').style.display = "none";
-    if (event.target == $('quickTaskModal')) $('quickTaskModal').style.display = "none"; // <-- Add this
+    if (event.target == $('logActivityModal')) $('logActivityModal').style.display = "none"; // <-- MODIFIED
     if (event.target == $('addNewTaskModal')) $('addNewTaskModal').style.display = "none"; // <-- Add this
     if (event.target == $('logLearningModal')) $('logLearningModal').style.display = "none"; // <-- NEW
     if (event.target == $('weeklyReviewPromptModal')) $('weeklyReviewPromptModal').style.display = "none"; // <-- NEW
@@ -2275,8 +2425,5 @@ window.startWeeklyReview = startWeeklyReview; // <-- NEW
 </script>
 </body>
 </html>
-
-
-
 
 
