@@ -46,9 +46,9 @@
     header h1{margin:0;font-size:1.1rem;color:var(--accent-dark)}
     .card{background:var(--card);border-radius:12px;box-shadow:var(--shadow);padding:1rem;margin-bottom:1rem}
     .row{display:flex;gap:1rem;align-items:center}
-    .col{flex:1}
-    .btn{background:linear-gradient(90deg,var(--accent),var(--accent-dark));color:white;padding:.6rem .9rem;border-radius:10px;border:none;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:.5rem}
+    .btn{background:linear-gradient(90deg,var(--accent),var(--accent-dark));color:white;padding:.6rem .9rem;border-radius:10px;border:none;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:.5rem; transition: transform 0.1s ease;}
     .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn:active { transform: scale(0.97); }
     .btn.ghost{background:transparent;color:var(--accent-dark);border:1px solid rgba(0,0,0,0.06)}
     .btn.active { background: var(--success); }
     .small{padding:.35rem .6rem;font-size:.9rem;border-radius:8px}
@@ -75,6 +75,12 @@
     /* Tasks & Targets */
     .task-item, .target-item {flex-wrap: wrap;gap:.75rem;padding:.2rem;border-radius:1px;align-items:center;border:1px solid rgba(10,20,40,0.04);transition:all .18s}
     .task-item:hover, .target-item:hover {transform:translateY(-4px)}
+    /* MODIFIED: Add animation properties for staggered load */
+    .task-item, .target-item, .learning-item {
+        animation: itemFadeInUp 0.3s ease-out forwards;
+        opacity: 0;
+        animation-delay: var(--delay, 0s);
+    }
     .task-completed, .target-completed {opacity:.55;text-decoration:line-through;background:linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.01))}
     .task-checkbox, .target-checkbox {transform:scale(1.15);}
     .task-meta{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.5rem;font-size:.85rem;color:var(--muted)}
@@ -139,8 +145,12 @@
 
     /* AI Modal Styles */
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
-    .modal-content { background-color: var(--card); margin: 10% auto; padding: 24px; border: 1px solid rgba(0,0,0,0.1); width: 90%; max-width: 600px; border-radius: 12px; box-shadow: var(--shadow); position: relative; animation: fadeIn .3s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    /* MODIFIED: Updated animation for a "springy" effect */
+    .modal-content { background-color: var(--card); margin: 10% auto; padding: 24px; border: 1px solid rgba(0,0,0,0.1); width: 90%; max-width: 600px; border-radius: 12px; box-shadow: var(--shadow); position: relative; animation: fadeIn .2s cubic-bezier(0.25, 0.8, 0.25, 1); }
+    @keyframes fadeIn { 
+        from { opacity: 0; transform: translateY(-20px) scale(0.95); } 
+        to { opacity: 1; transform: translateY(0) scale(1); } 
+    }
     .close-modal { color: var(--muted); position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; }
     .close-modal:hover, .close-modal:focus { color: var(--danger); text-decoration: none; cursor: pointer; }
     #modalContent .subtask-item { display: flex; align-items: center; justify-content: space-between; padding: .6rem 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
@@ -196,6 +206,7 @@
         border-radius: 12px;
         background: rgba(0,0,0,0.02);
         margin-bottom: 0.75rem;
+        /* Animation properties are already added via the shared rule */
     }
     .dark .learning-item { background: rgba(255,255,255,0.05); }
     .tag-badge {
@@ -289,6 +300,18 @@
         .btn-text { display: none; }
         .header-buttons .btn.small { padding: .6rem; }
     }
+
+    /* NEW: Staggered list animation */
+    @keyframes itemFadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
   </style>
 </head>
 <body>
@@ -340,23 +363,27 @@
         <!-- NEW: Quick Navigation Bar -->
         <div class="card" style="padding: 0.75rem;">
             <h3 style="margin:.2rem 0 0.5rem">Quick Actions</h3>
-            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: space-between;">
-                <!-- This button navigates to the targets page -->
-                <!-- MODIFIED: Changed the second argument to null since we are removing the nav item -->
-                <button class="btn small ghost" onclick="showSection('targetsSection', null)" style="flex: 1 1 120px; justify-content: center;">
-                    <i class="fas fa-bullseye"></i>&nbsp;Manage Targets
+            <!-- MODIFIED: Re-arranged grid and added View Plan button -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                <!-- Plan My Day Button -->
+                <button class="btn small ghost" onclick="planMyDay()" style="justify-content: center;">
+                    <i class="fas fa-magic"></i>&nbsp;Plan My Day
                 </button>
-                <!-- MODIFIED: This button now opens the unified "Log Activity" modal -->
-                <button class="btn small ghost" onclick="$('logActivityModal').style.display='block'; showLogTab('task');" style="flex: 1 1 120px; justify-content: center;">
+                <!-- NEW: View Plan Button -->
+                <button class="btn small ghost" onclick="viewMyPlan()" style="justify-content: center;">
+                    <i class="fas fa-eye"></i>&nbsp;View Plan
+                </button>
+                <button class="btn small ghost" onclick="showSection('targetsSection', null)" style="justify-content: center;">
+                    <i class="fas fa-bullseye"></i>&nbsp;Targets
+                </button>
+                <button class="btn small ghost" onclick="$('logActivityModal').style.display='block'; showLogTab('task');" style="justify-content: center;">
                     <i class="fas fa-plus"></i>&nbsp;Log Activity
                 </button>
-                <!-- This button opens the existing API Key modal -->
-                <button class="btn small ghost" onclick="$('apiKeyModal').style.display='block'" style="flex: 1 1 120px; justify-content: center;">
-                    <i class="fas fa-key"></i>&nbsp;API Key
-                </button>
-                <!-- NEW: Log Learning Button -->
-                <button class="btn small ghost" onclick="$('logLearningModal').style.display='block'" style="flex: 1 1 120px; justify-content: center;">
+                <button class="btn small ghost" onclick="$('logLearningModal').style.display='block'" style="justify-content: center;">
                     <i class="fas fa-lightbulb"></i>&nbsp;Log Learning
+                </button>
+                <button class="btn small ghost" onclick="$('apiKeyModal').style.display='block'" style="justify-content: center;">
+                    <i class="fas fa-key"></i>&nbsp;API Key
                 </button>
             </div>
         </div>
@@ -1129,6 +1156,114 @@ async function breakDownTask() {
     }
 }
 
+/* ====== NEW: Proactive AI Scheduler ====== */
+async function planMyDay() {
+    const btn = document.querySelector('button[onclick="planMyDay()"]'); // Get the button
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>&nbsp;Planning...';
+
+    // 1. Gather Context
+    const profile = getProfileDetails();
+    const activeTasks = getTasks().filter(t => !t.completed);
+    const weeklyTargets = getTargets().filter(t => t.period === 'week' && !t.completed && isDateInCurrentWeek(t.createdAt));
+    const now = new Date();
+    const currentTimeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+    const currentDayStr = now.toLocaleDateString('en-US', { weekday: 'long' });
+
+    let taskContext = 'No active tasks.';
+    if (activeTasks.length > 0) {
+        taskContext = 'Active Tasks:\n' + activeTasks.map(t => {
+            let details = [
+                `Priority: ${t.priority}`,
+                t.category ? `Category: ${t.category}` : '',
+                (t.startTime && t.endTime) ? `Scheduled: ${t.startTime}-${t.endTime} (Booked)` : (t.startTime ? `Scheduled: ${t.startTime}` : '')
+            ].filter(Boolean).join(', ');
+            return `- "${t.title}" (${details})`;
+        }).join('\n');
+    }
+
+    let targetContext = 'No active weekly targets.';
+    if (weeklyTargets.length > 0) {
+        targetContext = 'Active Weekly Targets:\n' + weeklyTargets.map(t => `- ${t.text}`).join('\n');
+    }
+
+    let profileContext = 'No profile goal set.';
+    if (profile.goal) {
+        profileContext = `User's Primary Goal: "${profile.goal}"`;
+    }
+
+    // 2. Build the Prompt
+    const prompt = `You are an expert scheduler and productivity coach. Your task is to create a prioritized, timed schedule for the user for the rest of their day.
+It is currently ${currentTimeStr} on ${currentDayStr}.
+
+Here is the user's current situation:
+---
+${profileContext}
+---
+${targetContext}
+---
+${taskContext}
+---
+
+Your Task:
+1.  **Analyze** all the active tasks, their priorities, and any pre-scheduled times.
+2.  **Integrate** the weekly targets and the user's primary goal.
+3.  **Create a timed schedule** for the *rest of today*, starting from now (${currentTimeStr}).
+4.  **Be realistic.** Include short breaks (e.g., 5-10 minutes) between focused tasks.
+5.  **Prioritize** high-priority tasks first. If time is limited, deprioritize or suggest moving low-priority tasks.
+6.  **Format** the plan clearly with time slots and task names (e.g., using markdown bolding for times).
+
+Example Response:
+**Your Plan for Today:**
+
+* **11:00 AM - 12:00 PM:** Focus on 'Calculus Chapter 3' (High Priority)
+* **12:00 PM - 12:15 PM:** Short Break (Quick walk, stretch)
+* **12:15 PM - 1:00 PM:** Work on 'Portfolio Website' (Medium Priority)
+...
+
+Begin the plan now.`;
+
+    // 3. Call API
+    const responseText = await callGemini(prompt, null); // Pass null to handle button state manually
+    
+    // 4. Display Response
+    if (responseText) {
+        const htmlResponse = parseMarkdown(responseText);
+        const title = 'Your Plan for Today';
+        
+        // NEW: Save the plan to local storage
+        write('last_plan', { title: title, content: htmlResponse });
+        
+        $('modalTitle').textContent = title;
+        $('modalContent').innerHTML = htmlResponse;
+        $('modalActionBtn').textContent = 'Close';
+        $('modalActionBtn').onclick = () => $('aiModal').style.display = 'none';
+        $('aiModal').style.display = 'block';
+    } else {
+        showToast('Could not generate a plan. Please check your API key.');
+    }
+    
+    // 5. Restore button
+    btn.disabled = false;
+    btn.innerHTML = originalHtml;
+}
+
+// NEW: Function to view the last generated plan
+function viewMyPlan() {
+    const lastPlan = read('last_plan');
+    if (lastPlan && lastPlan.title && lastPlan.content) {
+        $('modalTitle').textContent = lastPlan.title;
+        $('modalContent').innerHTML = lastPlan.content;
+        $('modalActionBtn').textContent = 'Close';
+        $('modalActionBtn').onclick = () => $('aiModal').style.display = 'none';
+        $('aiModal').style.display = 'block';
+    } else {
+        showToast('You have not generated a plan yet.');
+    }
+}
+
+
 /* ====== AI Chat Functions ====== */
 
 function getAIContext() {
@@ -1159,6 +1294,8 @@ function getAIContext() {
         .filter(l => new Date(l.createdAt).getTime() >= oneWeekAgo)
         .map(l => l.text.substring(0, 100) + (l.text.length > 100 ? '...' : '')); // Get first 100 chars
     
+    let recentSleep = []; // NEW: Add sleep data array
+    
     for (let i = 0; i < 7; i++) {
         const day = datePlusDays(todayISO(), -i);
 
@@ -1184,6 +1321,11 @@ function getAIContext() {
             moodCount++;
         }
         totalWater += totalWaterForDay(day);
+        
+        const sleep = getSleepForDay(day); // NEW: Get sleep data
+        if (sleep) { // NEW: Check if sleep data exists
+            recentSleep.push({ day, sleep: sleep.sleep, wake: sleep.wake }); // NEW: Add to array
+        }
     }
     const activeTasks = getTasks().filter(t => !t.completed).length;
     const streak = read('streak', 0);
@@ -1224,6 +1366,27 @@ function getAIContext() {
     } else {
         context += "- No active weekly targets.\n";
     }
+    
+    // NEW: Add sleep data to context
+    if (recentSleep.length > 0) {
+        let totalDuration = 0;
+        recentSleep.forEach(s => {
+            const [sh, sm] = s.sleep.split(':').map(Number);
+            const [wh, wm] = s.wake.split(':').map(Number);
+            const sleepT = sh * 60 + sm;
+            const wakeT = wh * 60 + wm;
+            let diff = wakeT > sleepT ? (wakeT - sleepT) : (1440 - sleepT + wakeT);
+            totalDuration += diff;
+        });
+        const avgDuration = (totalDuration / recentSleep.length / 60).toFixed(1);
+        context += `- Average Sleep (last ${recentSleep.length} logs): ${avgDuration} hours/night.\n`;
+        // recentSleep is in reverse chronological order (day 0, day -1, etc)
+        // so index 0 is today or the most recent log.
+        context += `- Most Recent Log: Slept at ${recentSleep[0].sleep}, Woke at ${recentSleep[0].wake}.\n`;
+    } else {
+        context += "- No sleep data logged in the last 7 days.\n";
+    }
+
     return context;
 }
 
@@ -1532,8 +1695,8 @@ function loadTasks(){
       </div>
       <div class="task-actions"> <button title="Complete" class="btn small" onclick="toggleTask(${t.id})"><i class="fas fa-check"></i></button> <button title="Delete" class="btn small ghost" onclick="deleteTask(${t.id})"><i class="fas fa-trash"></i></button> </div>
     </div>`).join('');
-  compCont.innerHTML= completed.length===0 ? '<div class="muted">No completed tasks</div>' : completed.map(t => `
-    <div class="task-item task-completed">
+  compCont.innerHTML= completed.length===0 ? '<div class="muted">No completed tasks</div>' : completed.map((t, i) => `
+    <div class="task-item task-completed" style="--delay: ${i * 50}ms">
       <input type="checkbox" class="task-checkbox" checked onchange="toggleTask(${t.id})">
       <div style="flex:1"> <div style="font-weight:700">${escapeHtml(t.title)}</div>
         <div class="task-meta"> <span><i class="fas fa-tag"></i> ${escapeHtml(t.category)}</span> <span class="muted">Completed</span> </div>
@@ -1624,27 +1787,24 @@ function loadLearnings(forceTagRender = false) {
         if (allTags.length === 0) {
             tagsEl.innerHTML = '<div class="muted">No tags added yet.</div>';
         } else {
-            tagsEl.innerHTML = allTags.map(tag => 
-                `<button class="tag-filter" data-tag="${escapeHtml(tag)}" onclick="toggleTagFilter(this)">
-                    ${escapeHtml(tag)}
-                </button>`
-            ).join('');
+            // This was the line that was missing
+            tagsEl.innerHTML = allTags.map(t => `<button class="tag-filter" data-tag="${escapeHtml(t)}" onclick="toggleTagFilter(this)">${escapeHtml(t)}</button>`).join('') + '<button class="tag-filter active" data-tag="" onclick="toggleTagFilter(this)">All</button>';
         }
-    }
+    } // <-- This brace was missing
     
-    // 2. Filter learnings
+    // 2. Filter entries (This logic was missing)
     const filteredLearnings = allLearnings.filter(l => {
-        const textMatch = !searchTerm || l.text.toLowerCase().includes(searchTerm);
-        const tagMatch = selectedTags.length === 0 || selectedTags.every(tag => l.tags.includes(tag));
-        return textMatch && tagMatch;
+        const matchesSearch = !searchTerm || l.text.toLowerCase().includes(searchTerm) || l.tags.some(t => t.toLowerCase().includes(searchTerm));
+        const matchesTags = selectedTags.length === 0 || selectedTags.includes("") || selectedTags.every(st => l.tags.includes(st));
+        return matchesSearch && matchesTags;
     });
-    
-    // 3. Render filtered list
+
+    // 3. Render list (This logic was in the wrong place and needs to be here)
     if (filteredLearnings.length === 0) {
-        listEl.innerHTML = '<div class="muted" style="text-align:center;">No entries found.</div>';
+        listEl.innerHTML = '<div class="muted" style="text-align: center; padding: 1rem;">No entries match your filters.</div>';
     } else {
-        listEl.innerHTML = filteredLearnings.map(l => `
-            <div class="learning-item">
+        listEl.innerHTML = filteredLearnings.map((l, i) => `
+            <div class="learning-item" style="--delay: ${i * 50}ms">
                 <button class="btn small ghost" onclick="deleteLearning(${l.id})" title="Delete" style="position: absolute; top: 10px; right: 10px; padding: 0.2rem 0.5rem; border-radius: 50%;">
                     <i class="fas fa-trash"></i>
                 </button>
@@ -2040,8 +2200,18 @@ function loadProfileDetails() {
 
 /* ====== XP & Streaks ====== */
 function getXP(){ return parseInt(read('xp',0) || 0); }
-function setXP(v){ write('xp', v); $('xpPoints').textContent = v; }
-function addXP(amount){ setXP(getXP() + amount); }
+function setXP(v){ 
+    write('xp', v); 
+    // MODIFIED:
+    animateCountUp($('xpPoints'), v); 
+}
+function addXP(amount){ 
+    // MODIFIED:
+    const currentXP = getXP(); // reads from storage
+    const newXP = currentXP + amount;
+    write('xp', newXP); // writes to storage
+    animateCountUp($('xpPoints'), newXP); // animates the DOM element
+}
 function updateSleepInfo(){
   const s = getSleepForDay(todayISO());
   if(s){
@@ -2062,7 +2232,9 @@ function updateStreak(){
     const hasTaskActivity = allTasks.some(t => (t.createdAt && t.createdAt.startsWith(d)) || (t.completedAt && t.completedAt.startsWith(d)));
     if((getStudyForDay(d).length>0) || (getWorkoutForDay(d).length>0) || hasTaskActivity || getSleepForDay(d) || getMoodForDay(d) || getWaterForDay(d).length > 0 || getMeditationForDay(d).length > 0) streak++; else break;
   }
-  write('streak', streak); $('streakCount').textContent = streak;
+  write('streak', streak); 
+  // MODIFIED:
+  animateCountUp($('streakCount'), streak);
 }
 
 /* ====== Dashboard & Charts ====== */
@@ -2254,10 +2426,108 @@ function updateChartsOnDataChange(){
 }
 
 /* ====== Utilities ====== */
+// NEW: Count-up animator
+function animateCountUp(el, endVal, duration = 400, suffix = '') {
+    if (!el) return;
+    let startVal = parseFloat(el.textContent) || 0;
+    if (startVal === endVal && el.textContent.includes(suffix)) {
+         el.textContent = `${endVal}${suffix}`; // Ensure it's set
+         return;
+    }
+
+    let startTime = null;
+    const isDecimal = (endVal % 1 !== 0) || (startVal % 1 !== 0);
+
+    function animation(currentTime) {
+        if (startTime === null) startTime = currentTime;
+        const timeElapsed = currentTime - startTime;
+        const progress = Math.min(timeElapsed / duration, 1);
+        
+        let currentVal = startVal + (endVal - startVal) * progress;
+        
+        let text;
+        if (isDecimal) {
+            text = currentVal.toFixed(1);
+        } else {
+            text = Math.floor(currentVal);
+        }
+        
+        el.textContent = `${text}${suffix}`;
+
+        if (timeElapsed < duration) {
+            requestAnimationFrame(animation);
+        } else {
+            if (isDecimal) {
+                el.textContent = `${endVal.toFixed(1)}${suffix}`;
+            } else {
+                el.textContent = `${endVal}${suffix}`;
+            }
+        }
+    }
+    requestAnimationFrame(animation);
+}
+
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, (m)=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+// NEW helper function to get all dates with data
+function getAllDataDates() {
+    let dates = new Set();
+    
+    // 1. Check array-based data
+    const tasks = getTasks();
+    tasks.forEach(t => {
+        if (t.createdAt) dates.add(t.createdAt.split('T')[0]);
+        if (t.completedAt) dates.add(t.completedAt.split('T')[0]);
+    });
+    
+    const learnings = getLearnings();
+    learnings.forEach(l => dates.add(l.createdAt.split('T')[0]));
+    
+    const targets = getTargets();
+    targets.forEach(t => dates.add(t.createdAt.split('T')[0]));
+    
+    // 2. Iterate localStorage keys for daily logs
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith(STORAGE_PREFIX)) {
+            const cleanKey = key.substring(STORAGE_PREFIX.length);
+            // Check for keys that are formatted like 'type_YYYY-MM-DD'
+            const parts = cleanKey.split('_');
+            if (parts.length === 2 && parts[1].match(/^\d{4}-\d{2}-\d{2}$/)) {
+                if (['study', 'workouts', 'water', 'meditation', 'sleep', 'mood'].includes(parts[0])) {
+                    dates.add(parts[1]); // Add the date part
+                }
+            }
+        }
+    }
+    
+    // 3. Sort and return
+    const sortedDates = [...dates].sort();
+    
+    // 4. Create a full date range from earliest to today
+    if (sortedDates.length === 0) return [];
+    
+    const allDays = [];
+    let currentDate = new Date(sortedDates[0] + 'T00:00:00'); // Start from the earliest date
+    const today = new Date(todayISO() + 'T00:00:00');
+    
+    while (currentDate <= today) {
+        allDays.push(currentDate.toISOString().split('T')[0]);
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return allDays;
+}
+
 function exportToCSV(){
-  const range = currentAnalyticsRange || 'weekly'; const days = getRangeDays(range);
-  let rows = [['date','study_hours','study_topics', 'linked_item', 'workout_mins', 'meditation_mins', 'tasks_completed','sleep','wake', 'mood', 'water_litres']]; // <-- Added 'linked_item'
+  // MODIFIED: Get ALL days with data, not just from the current range
+  const days = getAllDataDates(); 
+  if (days.length === 0) {
+      showToast("No data to export.");
+      return;
+  }
+
+  let rows = [['date','study_hours','study_topics', 'linked_item', 'workout_mins', 'meditation_mins', 'tasks_completed','sleep','wake', 'mood', 'water_litres']]; 
   const allTasks = getTasks();
 
   // NEW: Create link map for export
@@ -2265,72 +2535,54 @@ function exportToCSV(){
   const projectsMap = getProjects().reduce((acc, p) => ({ ...acc, [`project:${p.id}`]: p.name }), {});
   const linkMap = { ...skillsMap, ...projectsMap };
 
-  if(range==='yearly'){
-    for(const m of days){
-      let study=0,work=0,tasks=0,sleep='',wake='', moodStr='', water=0, meditation=0;
-      let topics = []; let linkedItems = []; // <-- Modified
-      const [y,mm]=m.split('-');
-      for(let d=1;d<=new Date(y,parseInt(mm),0).getDate();d++){
-        const iso = `${m}-${String(d).padStart(2,'0')}`;
-        
-        const studyEntries = getStudyForDay(iso); // <-- Get entries
-        studyEntries.forEach(e => { // <-- Loop entries
-            study += (parseFloat(e.hours) || 0);
-            if (e.topic) topics.push(e.topic.replace(/"/g, '""')); // Escape quotes in topic
-            if (e.linkedItem && linkMap[e.linkedItem]) linkedItems.push(linkMap[e.linkedItem]); // <-- NEW
-        });
-        
-        work += totalWorkoutForDay(iso);
-        meditation += totalMeditationForDay(iso);
-        tasks += allTasks.filter(t=> t.completed && t.completedAt && t.completedAt.startsWith(iso)).length;
-        const s = getSleepForDay(iso); if(s){ sleep = s.sleep; wake = s.wake; }
-        const mood = getMoodForDay(iso); if (mood) { moodStr = mood.mood; }
-        water += totalWaterForDay(iso);
-      }
-      rows.push([m, study.toFixed(2), [...new Set(topics)].join('; '), [...new Set(linkedItems)].join('; '), work, meditation, tasks, sleep, wake, moodStr, water.toFixed(2)]); // <-- Modified
-    }
-  } else {
-    for(const d of days){
-        const mood = getMoodForDay(d);
-        
-        const studyEntries = getStudyForDay(d); // <-- Get entries
-        const studyHours = studyEntries.reduce((s,x)=>s+(parseFloat(x.hours)||0),0); // <-- Calc hours
-        const studyTopics = studyEntries.map(e => e.topic ? e.topic.replace(/"/g, '""') : '').filter(Boolean).join('; '); // <-- Get topics and escape quotes
-        const studyLinkedItems = studyEntries.map(e => e.linkedItem && linkMap[e.linkedItem] ? linkMap[e.linkedItem] : '').filter(Boolean).join('; '); // <-- NEW
+  // REMOVED: The if(range==='yearly') block. We will always export daily data.
+  
+  // ALWAYS export daily data
+  for(const d of days){
+      const mood = getMoodForDay(d);
+      
+      const studyEntries = getStudyForDay(d); // <-- Get entries
+      const studyHours = studyEntries.reduce((s,x)=>s+(parseFloat(x.hours)||0),0); // <-- Calc hours
+      const studyTopics = studyEntries.map(e => e.topic ? e.topic.replace(/"/g, '""') : '').filter(Boolean).join('; '); // <-- Get topics and escape quotes
+      const studyLinkedItems = studyEntries.map(e => e.linkedItem && linkMap[e.linkedItem] ? linkMap[e.linkedItem] : '').filter(Boolean).join('; '); // <-- NEW
 
-        rows.push([
-            d, 
-            studyHours.toFixed(2), // <-- Use new hours
-            studyTopics, // <-- Add topics
-            studyLinkedItems, // <-- NEW: Add linked items
-            totalWorkoutForDay(d), 
-            totalMeditationForDay(d), 
-            allTasks.filter(t=> t.completed && t.completedAt && t.completedAt.startsWith(d)).length, 
-            (getSleepForDay(d)||{}).sleep||'', 
-            (getSleepForDay(d)||{}).wake||'', 
-            mood ? mood.mood : '', 
-            totalWaterForDay(d).toFixed(2)
-        ]);
-    }
+      rows.push([
+          d, 
+          studyHours.toFixed(2), // <-- Use new hours
+          studyTopics, // <-- Add topics
+          studyLinkedItems, // <-- NEW: Add linked items
+          totalWorkoutForDay(d), 
+          totalMeditationForDay(d), 
+          allTasks.filter(t=> t.completed && t.completedAt && t.completedAt.startsWith(d)).length, 
+          (getSleepForDay(d)||{}).sleep||'', 
+          (getSleepForDay(d)||{}).wake||'', 
+          mood ? mood.mood : '', 
+          totalWaterForDay(d).toFixed(2)
+      ]);
   }
+  
   const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `prod_report_${new Date().toISOString().split('T')[0]}.csv`; a.click();
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `prod_report_all_${new Date().toISOString().split('T')[0]}.csv`; // MODIFIED filename
+  a.click();
   URL.revokeObjectURL(a.href);
 }
 
 /* ====== Init & bindings ====== */
 function updateTodayQuickStats(){
   $('todayDate').textContent = new Date().toLocaleDateString();
-  $('todayStudyHours').textContent = `${totalStudyForDay(todayISO()).toFixed(1)} hrs`;
-  $('todayWorkout').textContent = `${totalWorkoutForDay(todayISO())} min`;
-  $('todayWater').textContent = `${totalWaterForDay(todayISO()).toFixed(1)} L`;
-  $('todayMeditation').textContent = `${totalMeditationForDay(todayISO())} min`;
+  // MODIFIED:
+  animateCountUp($('todayStudyHours'), totalStudyForDay(todayISO()), 400, ' hrs');
+  animateCountUp($('todayWorkout'), totalWorkoutForDay(todayISO()), 400, ' min');
+  animateCountUp($('todayWater'), totalWaterForDay(todayISO()), 400, ' L');
+  animateCountUp($('todayMeditation'), totalMeditationForDay(todayISO()), 400, ' min');
   updateTodayCompletedCount();
 }
 function updateTodayCompletedCount(){ 
     const today = todayISO();
-    $('todayCompletedTasks').textContent = getTasks().filter(t => t.completed && t.completedAt && t.completedAt.startsWith(today)).length; 
+    // MODIFIED:
+    const count = getTasks().filter(t => t.completed && t.completedAt && t.completedAt.startsWith(today)).length;
+    animateCountUp($('todayCompletedTasks'), count);
 }
 function loadHomeQuickStats(){ updateTodayQuickStats(); updateSleepInfo(); loadTodaysMood(); populateStudyLinkDropdown(); $('subTitle').textContent = 'Stay focused — check your progress'; } // <-- Modified
 
@@ -2403,6 +2655,7 @@ function initialize(){
   // Other events
   $('exportBtn').addEventListener('click', exportToCSV);
   $('darkToggle').addEventListener('click', ()=>{ document.documentElement.classList.toggle('dark'); });
+  // MODIFIED: Set initial value without animation
   $('xpPoints').textContent = getXP();
   
   // NEW: Weekly Review Modal Events
@@ -2424,12 +2677,18 @@ window.useSuggestion = useSuggestion; window.addTarget = addTarget; window.toggl
 window.addSkill = addSkill; window.deleteSkill = deleteSkill; window.addProject = addProject; window.deleteProject = deleteProject; // <-- NEW
 window.logLearning = logLearning; window.loadLearnings = loadLearnings; window.toggleTagFilter = toggleTagFilter; window.deleteLearning = deleteLearning; // <-- NEW
 window.startWeeklyReview = startWeeklyReview; // <-- NEW
-
-
+window.planMyDay = planMyDay; // <-- NEW: Expose new function
+window.viewMyPlan = viewMyPlan; // <-- NEW: Expose new function
 
 
 </script>
 </body>
 </html>
+
+
+
+
+
+
 
 
