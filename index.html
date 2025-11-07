@@ -148,9 +148,31 @@
 
     /* Dashboard summary */
     .summary-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
-    /* MODIFIED: Use accent gradient and set white text */
-    .summary-card{padding:1rem;border-radius:12px;background:linear-gradient(180deg,var(--accent),var(--accent-dark));color: white;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:.5rem}
+    /* MODIFIED: Use accent gradient and set white text. Added position: relative and overflow: hidden */
+    .summary-card{
+        position: relative; /* For icon positioning */
+        overflow: hidden;   /* To contain the icon */
+        padding:1rem;
+        border-radius:12px;
+        background:linear-gradient(180deg,var(--accent),var(--accent-dark));
+        color: white;
+        box-shadow:var(--shadow);
+        display:flex;
+        flex-direction:column;
+        gap:.5rem
+    }
     
+    /* NEW: Background icon for stat cards */
+    .summary-card-icon {
+        position: absolute;
+        right: 0.75rem;
+        bottom: 0.25rem;
+        font-size: 3.5rem; /* Large */
+        opacity: 0.15; /* Very faint */
+        color: white; /* Always white */
+        pointer-events: none; /* Don't block clicks */
+    }
+
     /* NEW: Dynamic colors for summary cards */
     .summary-card.study {
         background: linear-gradient(180deg, #3b82f6, #2563eb); /* Blue */
@@ -370,6 +392,30 @@
     }
 
 
+    /* NEW: Empty State Styles */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+        text-align: center;
+        opacity: 0.7;
+    }
+    .empty-state-icon {
+        width: 64px;
+        height: 64px;
+        color: var(--muted);
+        margin-bottom: 1rem;
+    }
+    .dark .empty-state-icon {
+        color: var(--muted);
+    }
+    .empty-state .muted {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+
     /* NEW: Onboarding Modal Feature List */
     .feature-list {
         list-style-type: none;
@@ -554,31 +600,37 @@
             <div class="summary-card study" style="min-width:120px">
               <div class="muted">Study (today)</div>
               <div id="todayStudyHours" style="font-weight:800;font-size:1.2rem">0 hrs</div>
+              <i class="fas fa-book summary-card-icon"></i> <!-- NEW -->
             </div>
             <!-- MODIFIED: Added .workout class -->
             <div class="summary-card workout" style="min-width:120px">
               <div class="muted">Workout (today)</div>
               <div id="todayWorkout" style="font-weight:800;font-size:1.2rem">0 min</div>
+              <i class="fas fa-dumbbell summary-card-icon"></i> <!-- NEW -->
             </div>
             <!-- MODIFIED: Added .water class -->
             <div class="summary-card water" style="min-width:120px">
                 <div class="muted">Water (today)</div>
                 <div id="todayWater" style="font-weight:800;font-size:1.2rem">0 L</div>
+                <i class="fas fa-tint summary-card-icon"></i> <!-- NEW -->
             </div>
             <!-- MODIFIED: Added .meditation class -->
             <div class="summary-card meditation" style="min-width:120px">
                 <div class="muted">Meditation</div>
                 <div id="todayMeditation" style="font-weight:800;font-size:1.2rem">0 min</div>
+                <i class="fas fa-om summary-card-icon"></i> <!-- NEW -->
             </div>
             <!-- MODIFIED: Added .tasks class -->
             <div class="summary-card tasks" style="min-width:120px">
               <div class="muted">Tasks Done</div>
               <div id="todayCompletedTasks" style="font-weight:800;font-size:1.2rem">0</div>
+              <i class="fas fa-check-circle summary-card-icon"></i> <!-- NEW -->
             </div>
             <!-- MODIFIED: Added .streak class -->
             <div class="summary-card streak" style="min-width:120px; grid-column: 1 / -1;">
               <div class="muted">Streak</div>
               <div id="streakCount" style="font-weight:800;font-size:1.2rem">0</div>
+              <i class="fas fa-fire summary-card-icon"></i> <!-- NEW -->
             </div>
           </div>
         </div>
@@ -708,15 +760,15 @@
     <!-- MOVED: Summary cards from dashboard -->
     <div class="summary-cards" style="margin-top:1rem">
         <!-- MODIFIED: Added .study class -->
-        <div class="summary-card study"> <div class="muted">Study</div> <div id="selStudy" style="font-weight:800;font-size:1.2rem">0 hrs</div> </div>
+        <div class="summary-card study"> <div class="muted">Study</div> <div id="selStudy" style="font-weight:800;font-size:1.2rem">0 hrs</div> <i class="fas fa-book summary-card-icon"></i></div>
         <!-- MODIFIED: Added .workout class -->
-        <div class="summary-card workout"> <div class="muted">Workout</div> <div id="selWorkout" style="font-weight:800;font-size:1.2rem">0 min</div> </div>
+        <div class="summary-card workout"> <div class="muted">Workout</div> <div id="selWorkout" style="font-weight:800;font-size:1.2rem">0 min</div> <i class="fas fa-dumbbell summary-card-icon"></i></div>
         <!-- MODIFIED: Added .meditation class -->
-        <div class="summary-card meditation"> <div class="muted">Meditation</div> <div id="selMeditation" style="font-weight:800;font-size:1.2rem">0 min</div> </div>
+        <div class="summary-card meditation"> <div class="muted">Meditation</div> <div id="selMeditation" style="font-weight:800;font-size:1.2rem">0 min</div> <i class="fas fa-om summary-card-icon"></i></div>
         <!-- MODIFIED: Added .tasks class -->
-        <div class="summary-card tasks"> <div class="muted">Tasks Done</div> <div id="selTasks" style="font-weight:800;font-size:1.2rem">0</div> </div>
+        <div class="summary-card tasks"> <div class="muted">Tasks Done</div> <div id="selTasks" style="font-weight:800;font-size:1.2rem">0</div> <i class="fas fa-check-circle summary-card-icon"></i></div>
         <!-- MODIFIED: Added .streak class -->
-        <div class="summary-card streak" style="grid-column: 1 / -1;"> <div class="muted">Current Streak</div> <div id="selStreak" style="font-weight:800;font-size:1.2rem">0</div> </div>
+        <div class="summary-card streak" style="grid-column: 1 / -1;"> <div class="muted">Current Streak</div> <div id="selStreak" style="font-weight:800;font-size:1.2rem">0</div> <i class="fas fa-fire summary-card-icon"></i></div>
     </div>
     
     <div class="analytics-grid" style="margin-top:1rem">
@@ -2427,7 +2479,18 @@ function loadTasks(){
   const completed = tasks.filter(t=>t.completed).sort((a,b)=>(b.completedAt && a.completedAt) ? new Date(b.completedAt) - new Date(a.completedAt) : 0);
  
   const activeCont = $('activeTasks'); const compCont = $('completedTasks');
-  activeCont.innerHTML= active.length===0 ? '<div class="muted">No active tasks</div>' : active.map(t => `
+  activeCont.innerHTML= active.length===0 ? `
+    <div class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-state-icon">
+          <path d="M15.5 3H8.5C7.67 3 7 3.67 7 4.5V19.5C7 20.33 7.67 21 8.5 21H15.5C16.33 21 17 20.33 17 19.5V4.5C17 3.67 16.33 3 15.5 3Z"></path>
+          <path d="M12 6H14"></path><path d="M12 10H14"></path><path d="M12 14H14"></path>
+          <path d="M10 6H10.01"></path><path d="M10 10H10.01"></path><path d="M10 14H10.01"></path>
+        </svg>
+        <div class="muted" style="font-size: 1rem;">No active tasks!</div>
+        <button class="btn small" onclick="$('addNewTaskModal').style.display='block'">
+            <i class="fas fa-plus"></i> Add New Task
+        </button>
+    </div>` : active.map(t => `
     <div class="task-item">
       <!-- MODIFIED: Pass 'event' to toggleTask -->
       <input type="checkbox" class="task-checkbox" onchange="toggleTask(event, ${t.id})">
@@ -2437,7 +2500,7 @@ function loadTasks(){
       </div>
       <div class="task-actions"> <button title="Complete" class="btn small" onclick="toggleTask(event, ${t.id})"><i class="fas fa-check"></i></button> <button title="Delete" class="btn small ghost" onclick="deleteTask(${t.id})"><i class="fas fa-trash"></i></button> </div>
     </div>`).join('');
-  compCont.innerHTML= completed.length===0 ? '<div class="muted">No completed tasks</div>' : completed.map((t, i) => `
+  compCont.innerHTML= completed.length===0 ? '<div class="muted" style="text-align:center; padding: 1rem;">No completed tasks yet.</div>' : completed.map((t, i) => `
     <div class="task-item task-completed" style="--delay: ${i * 50}ms">
       <!-- MODIFIED: Pass 'event' to toggleTask -->
       <input type="checkbox" class="task-checkbox" checked onchange="toggleTask(event, ${t.id})">
@@ -2553,7 +2616,17 @@ function loadLearnings(forceTagRender = false) {
 
     // 3. Render list
     if (filteredLearnings.length === 0) {
-        listEl.innerHTML = '<div class="muted" style="text-align: center; padding: 1rem;">No entries match your filters.</div>';
+        listEl.innerHTML = `
+        <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-state-icon">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            <div class="muted" style="font-size: 1rem;">No entries match your filters.</div>
+            <button class="btn small" onclick="$('logLearningModal').style.display='block'">
+                <i class="fas fa-plus"></i> Log a New Entry
+            </button>
+        </div>`;
     } else {
         listEl.innerHTML = filteredLearnings.map((l, i) => `
             <div class="learning-item" style="--delay: ${i * 50}ms">
@@ -2786,7 +2859,14 @@ function loadSkillsAndProjects() {
     const projectsList = $('projectsList');
 
     if (skills.length === 0) {
-        skillsList.innerHTML = '<div class="muted" style="text-align:center;">No skills defined.</div>';
+        skillsList.innerHTML = `
+        <div class="empty-state" style="padding: 1rem 0;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-state-icon">
+              <path d="M15.5 3H8.5C7.67 3 7 3.67 7 4.5V19.5C7 20.33 7.67 21 8.5 21H15.5C16.33 21 17 20.33 17 19.5V4.5C17 3.67 16.33 3 15.5 3Z"></path>
+              <path d="M12 6H14"></path><path d="M10 6H10.01"></path>
+            </svg>
+            <div class="muted" style="font-size: 0.9rem; margin-bottom: 0;">No skills defined.</div>
+        </div>`;
     } else {
         skillsList.innerHTML = skills.map(s => `
             <div class="skill-item">
@@ -2799,7 +2879,14 @@ function loadSkillsAndProjects() {
     }
 
     if (projects.length === 0) {
-        projectsList.innerHTML = '<div class="muted" style="text-align:center;">No projects defined.</div>';
+        projectsList.innerHTML = `
+        <div class="empty-state" style="padding: 1rem 0;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-state-icon">
+              <path d="M15.5 3H8.5C7.67 3 7 3.67 7 4.5V19.5C7 20.33 7.67 21 8.5 21H15.5C16.33 21 17 20.33 17 19.5V4.5C17 3.67 16.33 3 15.5 3Z"></path>
+              <path d="M12 6H14"></path><path d="M10 6H10.01"></path>
+            </svg>
+            <div class="muted" style="font-size: 0.9rem; margin-bottom: 0;">No projects defined.</div>
+        </div>`;
     } else {
         projectsList.innerHTML = projects.map(p => `
             <div class="project-item">
@@ -2919,7 +3006,14 @@ function loadTargets() {
    
     const renderList = (targets, container) => {
         if (targets.length === 0) {
-            container.innerHTML = `<div class="muted" style="text-align:center; padding: .5rem;">No targets set for this period.</div>`;
+            container.innerHTML = `
+            <div class="empty-state" style="padding: 1rem 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-state-icon">
+                  <path d="M15.5 3H8.5C7.67 3 7 3.67 7 4.5V19.5C7 20.33 7.67 21 8.5 21H15.5C16.33 21 17 20.33 17 19.5V4.5C17 3.67 16.33 3 15.5 3Z"></path>
+                  <path d="M12 6H14"></path><path d="M10 6H10.01"></path>
+                </svg>
+                <div class="muted" style="font-size: 0.9rem; margin-bottom: 0;">No targets set.</div>
+            </div>`;
             return;
         }
         container.innerHTML = targets.map(t => `
