@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>CorteX - AI</title>
 
+  <!-- REMOVED: Redundant and buggy FOUC prevention script. -->
+  <!-- The correct script is at the end of the <head> block. -->
+
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <!-- FontAwesome -->
@@ -40,7 +43,8 @@
     }
     /* MODIFIED: Cleaned up background and set default text color */
     html,body{height:100%;margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;color:var(--text-color);background:var(--bg); }
-    .app{max-width:var(--max-width);padding-bottom:80px;    box-sizing:border-box;}
+    /* MODIFIED: Added margin: 0 auto; to center on desktop */
+    .app{max-width:var(--max-width);padding-bottom:80px;box-sizing:border-box;margin: 0 auto;}
     header.main-header{display:flex;align-items:center;justify-content:space-between;padding:1rem }
     header .title{display:flex;gap:0.75rem;align-items:center}
     header h1{margin:0;font-size:1.1rem;color:var(--accent-dark)}
@@ -78,7 +82,7 @@
     /* MODIFIED: Add animation properties for staggered load */
     .task-item, .target-item, .learning-item {
         animation: itemFadeInUp 0.3s ease-out forwards;
-        opacity: 0;
+       
         animation-delay: var(--delay, 0s);
     }
     .task-completed, .target-completed {opacity:.55;text-decoration:line-through;background:linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.01))}
@@ -88,6 +92,16 @@
     .priority-medium{color:#ffb020}
     .priority-high{color:var(--danger)}
     .task-actions, .target-actions {margin-left:auto;display:flex;gap:.4rem}
+    
+    /* NEW: Class to fix text visibility */
+    .item-text {
+        flex: 1;
+        color: var(--text-color);
+        /* This rule ensures the text always uses the theme's primary text color. */
+        word-wrap: break-word; /* Added for long targets/tasks */
+        overflow-wrap: break-word;
+        min-width: 0; /* Fix for flexbox overflow */
+    }
     
     /* New styles for Skill/Project items */
     .skill-item, .project-item {
@@ -271,48 +285,112 @@
         color: var(--accent);
         border-color: rgba(255, 255, 255, 0.2);
     }
+    /* NEW: Active nav item in dark mode */
+    .dark .nav-item.active {
+        background: var(--success); /* Dark Mint */
+        color: var(--text-color); /* Light Text */
+    }
+
+    /* NEW: Onboarding Modal Feature List */
+    .feature-list {
+        list-style-type: none;
+        padding: 0;
+        margin: 1.5rem 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    .feature-list li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.95rem;
+        background: rgba(0,0,0,0.04);
+        padding: 0.75rem;
+        border-radius: 8px;
+    }
+    .dark .feature-list li {
+        background: rgba(255,255,255,0.05);
+    }
+    .feature-list li i {
+        width: 20px;
+        text-align: center;
+        color: var(--accent);
+        font-size: 1.1rem;
+    }
 
     /* Responsive */
     @media(max-width:900px){ .tasks-grid{grid-template-columns:1fr} .summary-cards{grid-template-columns:repeat(2,1fr)} header h1{font-size:1rem} .analytics-grid { grid-template-columns: 1fr; } }
     @media(max-width:768px){ 
         .tasks-layout { flex-direction: column; }
         /* Stack form inputs for easier use on mobile */
-        .task-form-inputs { flex-direction: column; align-items: stretch; }
         .form-row { flex-direction: column; }
         .form-row > .btn { justify-content: center; }
     }
     @media(max-width:560px){ 
-        .main-header { flex-direction: column; align-items: center; gap: 1rem; text-align: center; }
+        /* MODIFIED: Reduced padding and gap for a tighter header */
+        .main-header { 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 0.5rem; /* Was 1rem */ 
+            text-align: center; 
+            padding: 0.75rem; /* Was 1rem */
+        }
+
+        /* NEW: Scale down the .title contents on mobile */
+        .main-header .title {
+            gap: 0.5rem; /* Was 0.75rem */
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .main-header .title img {
+            width: 44px !important; /* Override inline style */
+            height: 44px !important; /* Override inline style */
+            border-radius: 8px !important;
+        }
+        .main-header .title div[style*="font-size: 40px"] {
+            font-size: 28px !important; /* Override inline style */
+        }
+        .main-header .title div[style*="margin-left: 1rem"] {
+            padding: 0.4rem 0.6rem !important; /* Override inline style */
+            margin-left: 0.5rem !important; /* Override inline style */
+            font-size: 0.9rem;
+        }
+
         .summary-cards{grid-template-columns:1fr} 
         .bottom-nav-inner{padding:.4rem .2rem} /* Adjusted padding */
-        .nav-item i{
-            font-size:1.1rem; /* Slightly larger icons */
-            margin-bottom: 0; /* Remove margin since text is gone */
-        }
-        .nav-item {
-            padding: .4rem; /* Adjust item padding */
-        }
-        /* NEW: Hide nav text on small screens */
-        .nav-text {
-            display: none;
-        }
-        /* Hide button text on mobile to save space */
-        .btn-text { display: none; }
-        .header-buttons .btn.small { padding: .6rem; }
-    }
-
-    /* NEW: Staggered list animation */
-    @keyframes itemFadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(15px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        .nav-item{padding:.3rem .2rem} /* Further adjust nav item padding */
+        .nav-item i { font-size: 1.1rem; }
+        .nav-text { font-size: 0.7rem; }
+        .chart-wrap { padding: 0.5rem; } /* Reduce padding on charts */
+        .modal-content { width: 95%; margin: 5% auto; padding: 16px; } /* Smaller modal on mobile */
+        .fab-add-task { bottom: 80px; } /* Adjust FAB position */
     }
   </style>
+  <!-- NEW SCRIPT: Persist Dark Mode BEFORE page loads -->
+  <!-- THIS IS THE CORRECT, PREFIXED SCRIPT -->
+  <script>
+    (function() {
+      // Use the same storage prefix as the main app
+      const STORAGE_PREFIX = 'prodtrk_';
+      const rawValue = localStorage.getItem(STORAGE_PREFIX + 'theme');
+      let theme = null;
+      
+      // Try to parse the value, just like the read() helper
+      try {
+        theme = JSON.parse(rawValue);
+      } catch (e) {
+        // It might be null or invalid, which is fine.
+      }
+
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else if (theme === 'light') {
+        document.documentElement.classList.remove('dark');
+      }
+      // If theme is null (first visit), it will use the default (light)
+    })();
+  </script>
 </head>
 <body>
 <div class="app" id="app">
@@ -347,7 +425,7 @@
   <section id="homeSection" class="section active card">
      <div style="display:flex;justify-content:space-between;align-items:center;">
        <div>
-         <h1 style="margin:.2rem 0 0">Home</h1>
+         
          <div class="muted" id="todayQuote">Keep going — small progress adds up.</div>
        </div>
        <div class="muted">Today: <span id="todayDate"></span></div>
@@ -388,6 +466,8 @@
             </div>
         </div>
 
+      
+
       <div class="card" style="margin-top:1rem">
           <h3 style="margin:.2rem 0">Quick Stats</h3>
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;flex-wrap:wrap">
@@ -417,7 +497,20 @@
             </div>
           </div>
         </div>
-        
+        <!-- NEW: Proactive AI Insights Card -->
+      <div class="card" style="margin-top: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 style="margin:.2rem 0">Proactive Insights</h3>
+              <i class="fas fa-brain" style="color: var(--accent-dark);"></i>
+          </div>
+          <div class="muted" style="font-size: 0.85rem; margin-bottom: 0.75rem;">Weekly analysis of your patterns.</div>
+          <div id="insightsContainer" style="display: flex; flex-direction: column; gap: 0.5rem; min-height: 50px;">
+              <!-- Insights will be loaded here -->
+              <div id="insightsLoading" class="muted">
+                  <i class="fas fa-spinner fa-spin"></i> Checking for new insights...
+              </div>
+          </div>
+      </div>
         <!-- REMOVED: Log Study Card -->
         <!--
         <div class="card">
@@ -501,27 +594,15 @@
     </div>
   </section>
 
-  <!-- Tasks -->
-  <section id="tasksSection" class="section">
-    <h2 style="margin:.2rem 0">Tasks</h2>
-    <div class="muted">Organize your daily and weekly tasks.</div>
-    
-    <div class="tasks-layout" style="margin-top: 1rem;">
-      <div class="card col">
-        <h3 style="margin:.2rem 0">Active Tasks</h3>
-        <div id="activeTasks" style="display:flex;flex-direction:column;gap:.6rem"></div>
-      </div>
-      <div class="card col">
-        <h3 style="margin:.2rem 0">Completed Tasks</h3>
-        <div id="completedTasks" style="display:flex;flex-direction:column;gap:.6rem"></div>
-      </div>
-    </div>
+  <!-- Floating Action Button -->
+  <button id="fab-task" class="fab-add-task" onclick="$('addNewTaskModal').style.display='block'" title="Add New Task" style="display: none;">
+      <i class="fas fa-plus"></i>
+  </button>
 
-    <!-- Floating Action Button -->
-    <button class="fab-add-task" onclick="$('addNewTaskModal').style.display='block'" title="Add New Task">
-        <i class="fas fa-plus"></i>
-    </button>
-  </section>
+  <!-- NEW: Floating Action Button (Log) -->
+  <button id="fab-log" class="fab-add-task" onclick="$('conversationalLogModal').style.display='block'" title="Log Activity" style="display: flex;"> <!-- Default to show on home -->
+      <i class="fas fa-plus"></i>
+  </button>
 
   <!-- REMOVED: This entire section has been merged into #analyticsSection
   <section id="dashboardSection" class="section">
@@ -567,11 +648,31 @@
     </div>
   </section>
 
+  <!-- Tasks -->
+  <section id="tasksSection" class="section">
+    <h2 style="margin:.2rem 0">Tasks</h2>
+    <div class="tasks-layout" style="margin-top:1rem">
+      <div class="card">
+        <h3 style="margin:.2rem 0">Active</h3>
+        <div id="activeTasks" style="margin-top:1rem;display:flex;flex-direction:column;gap:.6rem"></div>
+      </div>
+      <div class="card">
+        <h3 style="margin:.2rem 0">Completed</h3>
+        <div id="completedTasks" style="margin-top:1rem;display:flex;flex-direction:column;gap:.6rem"></div>
+      </div>
+    </div>
+  </section>
+
   <!-- Targets Section -->
   <section id="targetsSection" class="section">
         <h2 style="margin:.2rem 0">Targets & Goals</h2>
         <div class="muted">Set your weekly, monthly, and yearly goals to stay on track.</div>
         
+        <!-- NEW: AI Goal Suggestion Button -->
+        <button class="btn" id="aiSuggestGoalsBtn" style="width: 100%; justify-content: center; margin-top: 1rem; margin-bottom: 1rem;">
+            <i class="fas fa-magic"></i>&nbsp;Get AI Goal Suggestions
+        </button>
+
         <div class="tasks-layout" style="margin-top: 1rem;">
             <!-- Weekly Targets -->
             <div class="card">
@@ -720,6 +821,9 @@
         <div class="form-row" style="padding: 1rem; border-top: 1px solid rgba(0,0,0,0.05); margin-top: 0;">
             <input id="chatInput" placeholder="Ask for advice or a plan...">
             <button class="btn" id="sendChatBtn" style="flex: 0 1 auto;"><i class="fas fa-paper-plane"></i></button>
+            <!-- REMOVED: Log Button
+            <button class="btn ghost" id="logChatBtn" style="flex: 0 1 auto;" title="Log Activity"><i class="fas fa-plus-circle"></i> Log</button>
+            -->
         </div>
     </div>
   </section>
@@ -892,6 +996,41 @@
     </div>
 </div>
 
+<!-- NEW: Onboarding Modal -->
+<div id="onboardingModal" class="modal">
+  <div class="modal-content" style="max-width: 500px;">
+    <span id="closeOnboardingModal" class="close-modal">&times;</span>
+    <h2 style="margin:.2rem 0">Welcome to KorteX!</h2>
+    <div class="muted" style="margin: 0.5rem 0 1.5rem;">Let's get you set up in 30 seconds.</div>
+    
+    <label for="onboardingName" class="muted" style="margin-bottom: .25rem; display: block;">First, what's your name?</label>
+    <input id="onboardingName" type="text" placeholder="e.g., Ayush">
+
+    <ul class="feature-list">
+        <li><i class="fas fa-plus-circle"></i> <b>Log Activity:</b> Use the <b>Log Activity</b> buttons to add study, workouts, and tasks.</li>
+        <li><i class="fas fa-comments"></i> <b>AI Chat:</b> Get personalized plans and advice from the <b>AI Chat</b> tab.</li>
+        <li><i class="fas fa-key"></i> <b>API Key:</b> Add your <b>Gemini API Key</b> to unlock all AI features.</li>
+    </ul>
+
+    <button class="btn" id="finishOnboardingBtn" style="width: 100%; justify-content: center;">Get Started!</button>
+  </div>
+</div>
+
+<!-- NEW: Conversational Log Modal -->
+<div id="conversationalLogModal" class="modal">
+  <div class="modal-content">
+    <span id="closeConversationalLogModal" class="close-modal">&times;</span>
+    <h3 style="margin:.2rem 0">Log Your Day</h3>
+    <div class="muted">Use natural language to log activities. (e.g., "Studied system design for 2 hours and ran 30 minutes")</div>
+    <div style="display:flex;flex-direction:column;gap:.75rem;margin-top:1rem;">
+        <textarea id="conversationalLogInput" rows="4" placeholder="I just finished a 1.5 hour study session on Python, did a 20 minute meditation, and drank 1L of water..."></textarea>
+        <button class="btn" id="conversationalLogSubmitBtn" style="justify-content: center;"><i class="fas fa-plus-circle"></i> Log Activities</button>
+    </div>
+    <!-- Area for confirmation -->
+    <div id="conversationalLogConfirmation" style="margin-top: 1rem; line-height: 1.6;"></div>
+  </div>
+</div>
+
 <nav class="bottom-nav" aria-hidden="false">
   <div class="bottom-nav-inner" role="navigation">
     <div class="nav-item active" data-target="homeSection" onclick="showSection('homeSection', this)"><i class="fas fa-home"></i><span class="nav-text">Home</span></div>
@@ -906,29 +1045,8 @@
   </div>
 </nav>
 
-<!-- NEW: Script for tab switching in the log modal -->
-<script>
-    // REMOVED: Helper function const $ = (id) => document.getElementById(id);
-    // It's defined in the main script block.
-
-    function showLogTab(tabName) {
-        // Hide all tab content
-        document.querySelectorAll('.log-tab-content').forEach(content => {
-            content.classList.remove('active');
-        });
-        
-        // Deactivate all tab buttons
-        document.querySelectorAll('.log-tabs .btn').forEach(button => {
-            button.classList.remove('active');
-        });
-        
-        // Show the selected tab content
-        $(`logContent-${tabName}`).classList.add('active');
-        
-        // Activate the selected tab button
-        $(`logTab-${tabName}`).classList.add('active');
-    }
-</script>
+<!-- REMOVED: Script for tab switching in the log modal -->
+<!-- This function has been moved into the main script block below -->
 
 
 <script>
@@ -942,6 +1060,7 @@ const STORAGE_PREFIX = 'prodtrk_';
 const MAX_DAILY_STUDY = 24;
 const MAX_SESSION_STUDY = 12;
 const MOOD_MAP = { 'terrible': 1, 'bad': 2, 'okay': 3, 'good': 4, 'great': 5 };
+const INSIGHTS_STALE_DAYS = 7; // How many days before regenerating insights
 
 let charts = {};
 // REMOVED: let currentDashboardRange = 'weekly';
@@ -954,6 +1073,25 @@ let chatHistory = [];
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
 
 function $(id){ return document.getElementById(id); }
+
+// NEW: Function moved from its own script tag
+function showLogTab(tabName) {
+    // Hide all tab content
+    document.querySelectorAll('.log-tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    // Deactivate all tab buttons
+    document.querySelectorAll('.log-tabs .btn').forEach(button => {
+        button.classList.remove('active');
+    });
+    
+    // Show the selected tab content
+    $(`logContent-${tabName}`).classList.add('active');
+    
+    // Activate the selected tab button
+    $(`logTab-${tabName}`).classList.add('active');
+}
 
 function showSection(id, el){
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -972,12 +1110,17 @@ function showSection(id, el){
     if (matchingNavItem) matchingNavItem.classList.add('active');
   }
 
+  // NEW: FAB Visibility Logic
+  $('fab-task').style.display = (id === 'tasksSection') ? 'flex' : 'none';
+  $('fab-log').style.display = (id === 'homeSection') ? 'flex' : 'none';
+
+
   // REMOVED: if(id==='dashboardSection') updateDashboard(currentDashboardRange);
   if(id==='analyticsSection') updateAnalytics(currentAnalyticsRange);
   if(id==='homeSection') loadHomeQuickStats();
   if(id==='tasksSection') loadTasks();
   if(id==='targetsSection') { loadTargets(); loadSkillsAndProjects(); } // <-- Modified
-  if(id==='learningsSection') loadLearnings(true); // <-- NEW
+  if(id==='learningsSection') loadLearnings(true); // <-- NEW: force tag render on first load
   if(id==='profileSection') loadProfileDetails();
   // NEW: Add auto-scroll when switching to chat section
   if(id==='chatSection') {
@@ -1037,6 +1180,13 @@ function saveApiKey(){
         write('gemini_api_key', key); 
         showToast('API Key saved!'); 
         $('apiKeyModal').style.display = 'none';
+        
+        // NEW: Trigger insight generation if it's the first time
+        const data = read('proactive_insights', { insights: [], timestamp: null });
+        if (!data.timestamp) {
+            // We've never run this before, let's kick it off
+            generateProactiveInsights();
+        }
     } else { 
         showToast('Please enter a valid API Key.'); 
     } 
@@ -1046,6 +1196,12 @@ function removeApiKey() {
     $('apiKeyInput').value = '';
     showToast('API Key removed.');
     $('apiKeyModal').style.display = 'none';
+
+    // NEW: Clear insights UI
+    const container = $('insightsContainer');
+    if (container) {
+        container.innerHTML = `<div class="muted">Add your Gemini API Key to unlock proactive insights.</div>`;
+    }
 }
 
 async function callGemini(prompt, buttonElement = null, retries = 3, delay = 1000) {
@@ -1264,6 +1420,130 @@ function viewMyPlan() {
 }
 
 
+/* ====== NEW: Proactive AI Insights Functions ====== */
+async function generateProactiveInsights() {
+    if (!getApiKey()) {
+        // No key, can't generate. loadProactiveInsights will handle the UI.
+        console.log("No API key, skipping insight generation.");
+        loadProactiveInsights(); // This will update the UI to "Add API Key"
+        return; 
+    }
+
+    // Set loading state immediately
+    const container = $('insightsContainer');
+    if (container) {
+        container.innerHTML = `<div id="insightsLoading" class="muted">
+            <i class="fas fa-spinner fa-spin"></i> Analyzing your 7-day data...
+        </div>`;
+    }
+
+    const context = getAIContext(); // Get the rich 7-day summary
+    
+    // This is the special "data analyst" prompt, personalized to you (Ayush)
+    const prompt = `You are a proactive data analyst and productivity coach. Your user, Ayush, is a Software Engineering student specializing in AI/ML. He values rational, data-driven feedback.
+
+    Analyze the following 7-day productivity summary. Find 2-3 actionable, data-backed insights or patterns.
+
+    - Look for correlations (e.g., mood vs. activity).
+    - Look for deviations (e.g., a skill not studied recently).
+    - Look for positive patterns to reinforce (e.g., "deep work" times).
+    - Be specific and use the data provided (e.g., "your mood was 2 points higher on days you...").
+    - Address Ayush directly. Keep insights concise (1-2 sentences).
+
+    Here is the 7-day data summary:
+    ---
+    ${context}
+    ---
+
+    Return your response *only* as a valid JSON array of strings. Each string is one insight. Do not include any other text, markdown, or explanations.
+
+    Example:
+    ["Ayush, I noticed your average mood was 2.1 points higher on the 3 days you logged a workout. This pattern is strong.", "Heads up: You haven't logged any study time for your 'Python' skill in 5 days. Want to add it to this week's plan?", "Pattern found: You completed 70% of your tasks between 10 AM and 1 PM. That seems to be your peak focus time."]
+    `;
+
+    const responseText = await callGemini(prompt, null); // No button to spin
+
+    if (!responseText) {
+        console.error("Failed to generate proactive insights.");
+        // Save an empty state so we don't try again immediately, but show an error
+        write('proactive_insights', { insights: [], timestamp: new Date().toISOString() });
+        if (container) container.innerHTML = `<div class="muted">Could not generate insights. Please try again later.</div>`;
+        return;
+    }
+
+    try {
+        const cleanedResponse = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        let insights = JSON.parse(cleanedResponse);
+        
+        if (!Array.isArray(insights)) throw new Error("AI response was not an array.");
+
+        // Save the new insights and timestamp
+        write('proactive_insights', {
+            insights: insights,
+            timestamp: new Date().toISOString()
+        });
+
+        // Re-call loadProactiveInsights to display them
+        loadProactiveInsights();
+
+    } catch (e) {
+        console.error("Failed to parse AI insights response:", e, "Raw:", responseText);
+        // Save an empty state
+        write('proactive_insights', { insights: [], timestamp: new Date().toISOString() });
+        if (container) container.innerHTML = `<div class="muted">Error parsing AI response.</div>`;
+    }
+}
+
+function loadProactiveInsights() {
+    const container = $('insightsContainer');
+    if (!container) return; // Not on the home page
+
+    if (!getApiKey()) {
+        container.innerHTML = `<div class="muted">Add your Gemini API Key to unlock proactive insights.</div>`;
+        return;
+    }
+
+    const data = read('proactive_insights', { insights: [], timestamp: null });
+    const now = new Date();
+    const lastGen = data.timestamp ? new Date(data.timestamp) : null;
+    
+    let daysSinceLastGen = Infinity;
+    if (lastGen) {
+        daysSinceLastGen = (now.getTime() - lastGen.getTime()) / (1000 * 60 * 60 * 24);
+    }
+
+    // Check if data is stale (older than 7 days) or doesn't exist
+    if (daysSinceLastGen > INSIGHTS_STALE_DAYS) {
+        // Trigger generation in the background
+        generateProactiveInsights(); // This function now sets its own loading message
+    } 
+    // Check if we have valid, non-stale insights
+    else if (data.insights && data.insights.length > 0) {
+        container.innerHTML = `
+            <ul style="list-style-type: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
+                ${data.insights.map(insight => `
+                    <li style="display: flex; gap: 0.5rem; align-items: flex-start;">
+                        <i class="fas fa-check-circle" style="color: var(--accent); margin-top: 4px; font-size: 0.9rem;"></i>
+                        <span class="muted" style="font-size: 0.9rem; line-height: 1.4;">${escapeHtml(insight)}</span>
+                    </li>
+                `).join('')}
+            </ul>
+        `;
+    } 
+    // Check if we have a non-stale *empty* result (e.g., AI returned [])
+    else if (lastGen && daysSinceLastGen <= INSIGHTS_STALE_DAYS) {
+        container.innerHTML = `<div class="muted">No new insights right now. Check back in a few days!</div>`;
+    }
+    // Fallback for the very first load (which is already covered by the > 7 check, but good to have)
+    else {
+         container.innerHTML = `<div id="insightsLoading" class="muted">
+            <i class="fas fa-spinner fa-spin"></i> Generating your first insights...
+        </div>`;
+        generateProactiveInsights();
+    }
+}
+
+
 /* ====== AI Chat Functions ====== */
 
 function getAIContext() {
@@ -1468,6 +1748,337 @@ function useSuggestion(text) { $('chatInput').value = text; handleSendMessage();
 function loadChatHistory() { chatHistory = read('chat_history', []); renderChat(); }
 function saveChatHistory() { write('chat_history', chatHistory); }
 
+/* ====== NEW: Conversational Logging Functions ====== */
+// ... existing code ... -->
+let pendingLogData = null;
+
+// 1. The main function triggered by the "Log" button
+async function handleConversationalLog() {
+    // MODIFIED: Read from modal input
+    const input = $('conversationalLogInput');
+    const message = input.value.trim();
+    if (!message) {
+        showToast("Please type what you'd like to log.");
+        return;
+    }
+
+    // REMOVED: Chat history updates
+    // chatHistory.push({ role: 'user', text: message });
+    // chatHistory.push({ role: 'ai', typing: true });
+    // renderChat();
+    // input.value = ''; // Don't clear input yet, user might want to edit
+
+    // B. Get context for the AI
+    const skills = getSkills().map(s => s.name);
+    const projects = getProjects().map(p => p.name);
+    const knownTopics = [...new Set([...skills, ...projects, 'Algorithms', 'System Design', 'Calculus', 'Data Structures'])];
+
+    // C. This is the "specialty" prompt. It asks for JSON, not a chat.
+    const prompt = `
+You are an entity extraction AI. Analyze the user's text and extract any loggable activities.
+Return *only* a valid JSON object. Do not include any other text, markdown, or explanations.
+
+The user's text is: "${message}"
+
+Your task is to populate the following JSON structure.
+- 'duration_minutes' is the primary field.
+- If the user gives hours (e.g., "2 hours"), convert it to minutes (120).
+- If 'topic' is mentioned for study, extract it. Try to match it to one of the known topics if possible: [${knownTopics.join(', ')}].
+- 'litres' is for water.
+
+{
+  "study": [
+    // e.g., { "duration_minutes": 120, "topic": "System Design" }
+  ],
+  "workout": [
+    // e.g., { "duration_minutes": 30 }
+  ],
+  "meditation": [
+    // e.g., { "duration_minutes": 10 }
+  ],
+  "water": [
+    // e.g., { "litres": 1.0 }
+  ]
+}
+
+If no activities are found, return an empty object: {}.
+`;
+
+    // D. Call the API (using the "Log" button for the spinner)
+    // MODIFIED: Use the modal submit button
+    const responseText = await callGemini(prompt, $('conversationalLogSubmitBtn'));
+    // REMOVED: chatHistory.pop(); // Remove "Typing..."
+
+    if (!responseText) {
+        // MODIFIED: Show error in modal
+        $('conversationalLogConfirmation').innerHTML = `<div class="muted">Sorry, I had trouble understanding that. Please try logging again.</div>`;
+        return;
+    }
+
+    // E. Parse the JSON and build the confirmation message
+    try {
+        const cleanedResponse = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const logs = JSON.parse(cleanedResponse);
+        pendingLogData = logs; // Store the data
+
+        let confirmationHtml = "Got it. Here's what I'm about to log:<ul>";
+        let hasLogs = false;
+
+        if (logs.study && logs.study.length > 0) {
+            logs.study.forEach(s => {
+                const hours = (s.duration_minutes / 60).toFixed(1);
+                confirmationHtml += `<li><b>Study:</b> ${hours} hours ${s.topic ? `(Topic: ${escapeHtml(s.topic)})` : ''}</li>`;
+                hasLogs = true;
+            });
+        }
+        if (logs.workout && logs.workout.length > 0) {
+            logs.workout.forEach(w => {
+                confirmationHtml += `<li><b>Workout:</b> ${w.duration_minutes} minutes</li>`;
+                hasLogs = true;
+            });
+        }
+        if (logs.meditation && logs.meditation.length > 0) {
+            logs.meditation.forEach(m => {
+                confirmationHtml += `<li><b>Meditation:</b> ${m.duration_minutes} minutes</li>`;
+                hasLogs = true;
+            });
+        }
+        if (logs.water && logs.water.length > 0) {
+            logs.water.forEach(w => {
+                confirmationHtml += `<li><b>Water:</b> ${w.litres.toFixed(1)} Litres</li>`;
+                hasLogs = true;
+            });
+        }
+        confirmationHtml += "</ul>";
+
+        if (!hasLogs) {
+            // MODIFIED: Show in modal
+            $('conversationalLogConfirmation').innerHTML = `<div class="muted">I didn't find any activities to log in that message.</div>`;
+            pendingLogData = null;
+            return;
+        }
+
+        // F. Add the confirmation message with buttons to the chat
+        confirmationHtml += `
+            <p>Does that look correct?</p>
+            <div class="form-row" style="gap: 0.5rem; margin-top: 0.5rem;">
+                <button class="btn small" onclick="confirmConversationalLog()">Yes, Confirm Log</button>
+                <button class="btn small ghost" onclick="cancelConversationalLog()">Cancel</button>
+            </div>
+        `;
+        
+        // MODIFIED: Show confirmation in the modal div
+        $('conversationalLogConfirmation').innerHTML = confirmationHtml;
+        // REMOVED: chatHistory.push({ role: 'ai', text: confirmationHtml });
+        // REMOVED: renderChat();
+
+    } catch (e) {
+        console.error("Failed to parse log response:", e, responseText);
+        // MODIFIED: Show error in modal
+        $('conversationalLogConfirmation').innerHTML = `<div class="muted">Sorry, I got an unexpected response. Could you try phrasing that differently?</div>`;
+    }
+}
+
+// 2. The confirmation function
+function confirmConversationalLog() {
+    if (!pendingLogData) return;
+
+    let logCount = 0;
+
+    // Programmatically fill and call the *existing* log functions
+    // This re-uses all our existing logic and is very efficient.
+    if (pendingLogData.study && pendingLogData.study.length > 0) {
+        pendingLogData.study.forEach(s => {
+            $('studyHours').value = (s.duration_minutes / 60).toFixed(1);
+            $('studyTopic').value = s.topic || '';
+            $('studyLink').value = ''; // Can't parse this yet
+            $('studyCategory').value = 'Self Study'; // Default
+            logStudy();
+            logCount++;
+        });
+    }
+    if (pendingLogData.workout && pendingLogData.workout.length > 0) {
+        pendingLogData.workout.forEach(w => {
+            $('workoutMins').value = w.duration_minutes;
+            logWorkout();
+            logCount++;
+        });
+    }
+    if (pendingLogData.meditation && pendingLogData.meditation.length > 0) {
+        pendingLogData.meditation.forEach(m => {
+            $('meditationMins').value = m.duration_minutes;
+            logMeditation();
+            logCount++;
+        });
+    }
+    if (pendingLogData.water && pendingLogData.water.length > 0) {
+        pendingLogData.water.forEach(w => {
+            $('waterLitres').value = w.litres.toFixed(1);
+            logWater();
+            logCount++;
+        });
+    }
+
+    // REMOVED: Chat updates
+    // chatHistory.push({ role: 'ai', text: `Done. I've logged all ${logCount} items for you!` });
+    // renderChat();
+    pendingLogData = null;
+    
+    // MODIFIED: Show success in modal, then close
+    $('conversationalLogConfirmation').innerHTML = `<div class="muted" style="color: var(--accent-dark); font-weight: 600;">Done. I've logged all ${logCount} items for you!</div>`;
+    $('conversationalLogInput').value = ''; // Clear input on success
+    
+    setTimeout(() => {
+        $('conversationalLogModal').style.display = 'none';
+        $('conversationalLogConfirmation').innerHTML = ''; // Clear confirmation
+    }, 1500); // Close modal after 1.5 seconds
+
+    // REMOVED: Clean up the buttons from the previous message
+    // removeLogButtons();
+}
+
+// 3. The cancel function
+function cancelConversationalLog() {
+    pendingLogData = null;
+    // REMOVED: Chat updates
+    // chatHistory.push({ role: 'ai', text: "Okay, I've cancelled that." });
+    // renderChat();
+    // removeLogButtons();
+
+    // MODIFIED: Just clear the confirmation div
+    $('conversationalLogConfirmation').innerHTML = '';
+}
+
+// 4. Helper to remove buttons after choice
+function removeLogButtons() {
+    // MODIFIED: This function is now simpler
+    // It just clears the confirmation div
+    const container = $('conversationalLogConfirmation');
+    if (container) {
+        container.innerHTML = '';
+    }
+    
+    // REMOVED: Old chat-based logic
+    // const chatMessages = $('chatMessages');
+    // ...
+}
+
+/* ====== NEW: AI Goal Setting Functions ====== */
+async function getAIGoalSuggestions() {
+    const profile = getProfileDetails();
+    if (!profile.goal) {
+        showToast("Please set your 'Primary Goal' in the Profile section first.");
+        showSection('profileSection', null); // Navigate user to profile
+        return;
+    }
+
+    // 1. Gather context
+    const skills = getSkills().map(s => s.name);
+    const projects = getProjects().map(p => p.name);
+    const existingTargets = getTargets()
+        .filter(t => !t.completed)
+        .map(t => `(${t.period}) ${t.text}`);
+    
+    // 2. Build the prompt
+    const prompt = `You are an expert career coach for Ayush, a Software Engineering student specializing in AI/ML.
+His primary, long-term goal is: "${profile.goal}"
+
+His current defined skills are: [${skills.join(', ')}]
+His current defined projects are: [${projects.join(', ')}]
+His existing active targets are:
+${existingTargets.length > 0 ? existingTargets.map(t => `- ${t}`).join('\n') : 'None'}
+
+Your task is to analyze his goal, skills, and projects, and suggest 3-5 concrete, actionable targets.
+- Suggest a mix of 'week' and 'month' period targets.
+- Ensure suggestions are specific (e.g., "Complete 3 LeetCode medium problems" not "Do LeetCode").
+- Do NOT suggest targets that are already on his active list.
+- Return *only* a valid JSON object in the following format. Do not include any other text, markdown, or explanations.
+
+{
+  "suggestions": [
+    { "period": "week", "text": "e.g., Complete 3 LeetCode medium problems." },
+    { "period": "month", "text": "e.g., Add a new, small project to your portfolio." },
+    { "period": "week", "text": "e.g., Study System Design for 5 hours." }
+  ]
+}
+`;
+
+    // 3. Call API
+    const responseText = await callGemini(prompt, $('aiSuggestGoalsBtn'));
+    if (!responseText) return;
+
+    // 4. Parse and display
+    try {
+        const cleanedResponse = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const data = JSON.parse(cleanedResponse);
+
+        if (!data.suggestions || data.suggestions.length === 0) {
+            showToast("The AI couldn't generate new suggestions right now.");
+            return;
+        }
+
+        const modalContent = $('modalContent');
+        modalContent.innerHTML = ''; // Clear previous content
+
+        data.suggestions.forEach(target => {
+            const item = document.createElement('div');
+            item.className = 'subtask-item';
+            
+            const text = document.createElement('span');
+            // Use escapeHtml on the user-facing text
+            text.innerHTML = `<strong>${target.period.toUpperCase()}:</strong> ${escapeHtml(target.text)}`;
+            item.appendChild(text);
+            
+            const addButton = document.createElement('button');
+            addButton.className = 'btn small';
+            addButton.innerHTML = '<i class="fas fa-plus"></i> Add';
+            // Pass the raw, unescaped text to the add function
+            addButton.onclick = () => addAITarget(target.period, target.text, addButton);
+            item.appendChild(addButton);
+            
+            modalContent.appendChild(item);
+        });
+
+        $('modalTitle').textContent = `AI Goal Suggestions`;
+        $('modalActionBtn').onclick = () => $('aiModal').style.display = 'none';
+        $('modalActionBtn').textContent = 'Close';
+        $('aiModal').style.display = 'block';
+
+    } catch (e) {
+        console.error("Failed to parse AI goal response:", e, "Raw:", responseText);
+        showToast("AI returned an invalid format. Please try again.");
+    }
+}
+
+function addAITarget(period, text, buttonEl) {
+    if (!text || !period) return;
+
+    // 1. Create and save the new target
+    const targets = getTargets();
+    targets.push({ 
+        id: Date.now(), 
+        text: text, 
+        period: period, 
+        completed: false, 
+        createdAt: new Date().toISOString() 
+    });
+    saveTargets(targets);
+
+    // 2. Give user feedback
+    showToast(`AI target added!`);
+    
+    // 3. Refresh the targets list on the page
+    loadTargets();
+    
+    // 4. Update the button in the modal
+    if (buttonEl) {
+        buttonEl.textContent = 'Added!';
+        buttonEl.disabled = true;
+        buttonEl.classList.add('ghost');
+    }
+}
+
+
 /* ====== NOTIFICATION SYSTEM ====== */
 function checkTaskReminders() {
     if (Notification.permission !== 'granted') return;
@@ -1579,7 +2190,7 @@ function logStudy(){
   addXP(Math.round(hoursInput*20));
   updateChartsOnDataChange();
   updateTodayQuickStats();
-  $('logActivityModal').style.display = 'none'; // <-- NEW: Close modal
+  // $('logActivityModal').style.display = 'none'; // <-- REMOVED: Won't close modal
 }
 function getWorkoutForDay(dayISO){ return read('workouts_' + dayISO, []); }
 function saveWorkoutForDay(dayISO, arr){ write('workouts_' + dayISO, arr); }
@@ -1593,7 +2204,7 @@ function logWorkout(){
   showToast(`${mins} min workout added!`); addXP(Math.round(mins/6));
   updateChartsOnDataChange();
   updateTodayQuickStats();
-  $('logActivityModal').style.display = 'none'; // <-- NEW: Close modal
+  // $('logActivityModal').style.display = 'none'; // <-- REMOVED: Won't close modal
 }
 function getWaterForDay(dayISO){ return read('water_' + dayISO, []); }
 function saveWaterForDay(dayISO, arr){ write('water_' + dayISO, arr); }
@@ -1610,7 +2221,7 @@ function logWater() {
     addXP(Math.round(litres * 5));
     updateChartsOnDataChange();
     updateTodayQuickStats();
-    $('logActivityModal').style.display = 'none'; // <-- NEW: Close modal
+    // $('logActivityModal').style.display = 'none'; // <-- REMOVED: Won't close modal
 }
 function getMeditationForDay(dayISO){ return read('meditation_' + dayISO, []); }
 function saveMeditationForDay(dayISO, arr){ write('meditation_' + dayISO, arr); }
@@ -1627,7 +2238,7 @@ function logMeditation() {
     addXP(Math.round(mins / 2));
     updateChartsOnDataChange();
     updateTodayQuickStats();
-    $('logActivityModal').style.display = 'none'; // <-- NEW: Close modal
+    // $('logActivityModal').style.display = 'none'; // <-- REMOVED: Won't close modal
 }
 function getSleepForDay(dayISO){ return read('sleep_' + dayISO, null); }
 function saveSleepForDay(dayISO, obj){ write('sleep_' + dayISO, obj); }
@@ -1637,7 +2248,7 @@ function logSleep(){
   saveSleepForDay(todayISO(), { sleep, wake, ts: new Date().toISOString() });
   $('sleepTime').value=''; $('wakeTime').value='';
   showToast('Sleep times saved'); updateSleepInfo(); updateChartsOnDataChange();
-  $('logActivityModal').style.display = 'none'; // <-- NEW: Close modal
+  // $('logActivityModal').style.display = 'none'; // <-- REMOVED: Won't close modal
 }
 function getTasks(){ return read('tasks', []); }
 function saveTasks(arr){ write('tasks', arr); }
@@ -1662,7 +2273,7 @@ function addQuickTask(){
   saveTasks(tasks);
   $('quickTaskTitle').value=''; $('quickTaskTime').value=''; $('quickTaskDuration').value='';
   showToast('Quick task added'); loadTasks(); updateChartsOnDataChange();
-  $('logActivityModal').style.display = 'none'; // <-- MODIFIED: Close correct modal
+  // $('logActivityModal').style.display = 'none'; // <-- REMOVED: Won't close modal
 }
 function addDurationToTime(timeStr, mins){
   const [hh,mm] = timeStr.split(':').map(Number);
@@ -1690,7 +2301,8 @@ function loadTasks(){
   activeCont.innerHTML= active.length===0 ? '<div class="muted">No active tasks</div>' : active.map(t => `
     <div class="task-item">
       <input type="checkbox" class="task-checkbox" onchange="toggleTask(${t.id})">
-      <div style="flex:1"> <div style="font-weight:700">${escapeHtml(t.title)}</div> ${t.description? `<div class="muted">${escapeHtml(t.description)}</div>` : ''}
+      <!-- MODIFIED: Added INLINE style for color -->
+      <div class="item-text"> <div style="font-weight:700; color: var(--text-color);">${escapeHtml(t.title)}</div> ${t.description? `<div class="muted">${escapeHtml(t.description)}</div>` : ''}
         <div class="task-meta"> <span><i class="fas fa-tag"></i> ${escapeHtml(t.category)}</span> <span class="priority-${t.priority}"><i class="fas fa-flag"></i> ${t.priority}</span> ${t.startTime ? `<span><i class="fas fa-clock"></i> ${t.startTime}${t.endTime? ' - '+t.endTime:''}</span>` : ''} </div>
       </div>
       <div class="task-actions"> <button title="Complete" class="btn small" onclick="toggleTask(${t.id})"><i class="fas fa-check"></i></button> <button title="Delete" class="btn small ghost" onclick="deleteTask(${t.id})"><i class="fas fa-trash"></i></button> </div>
@@ -1698,7 +2310,8 @@ function loadTasks(){
   compCont.innerHTML= completed.length===0 ? '<div class="muted">No completed tasks</div>' : completed.map((t, i) => `
     <div class="task-item task-completed" style="--delay: ${i * 50}ms">
       <input type="checkbox" class="task-checkbox" checked onchange="toggleTask(${t.id})">
-      <div style="flex:1"> <div style="font-weight:700">${escapeHtml(t.title)}</div>
+      <!-- MODIFIED: Added INLINE style for color -->
+      <div class="item-text"> <div style="font-weight:700; color: var(--text-color);">${escapeHtml(t.title)}</div>
         <div class="task-meta"> <span><i class="fas fa-tag"></i> ${escapeHtml(t.category)}</span> <span class="muted">Completed</span> </div>
       </div>
       <div class="task-actions"> <button title="Delete" class="btn small ghost" onclick="deleteTask(${t.id})"><i class="fas fa-trash"></i></button> </div>
@@ -1778,28 +2391,30 @@ function loadLearnings(forceTagRender = false) {
     const tagsEl = $('learningTagFilters');
     const searchTerm = $('learningSearchInput').value.toLowerCase();
     
-    // Get selected tags
-    const selectedTags = Array.from(tagsEl.querySelectorAll('.tag-filter.active')).map(b => b.dataset.tag);
-    
     // 1. (Optional) Re-render tag filter buttons
     if (forceTagRender) {
         const allTags = [...new Set(allLearnings.flatMap(l => l.tags))].sort();
+        tagsEl.innerHTML = allTags.map(t => `<button class="tag-filter" data-tag="${escapeHtml(t)}" onclick="toggleTagFilter(this)">${escapeHtml(t)}</button>`).join('');
+        // Add the "All" button, and make it active by default
+        tagsEl.innerHTML += '<button class="tag-filter active" data-tag="" onclick="toggleTagFilter(this)">All</button>';
+        
         if (allTags.length === 0) {
             tagsEl.innerHTML = '<div class="muted">No tags added yet.</div>';
-        } else {
-            // This was the line that was missing
-            tagsEl.innerHTML = allTags.map(t => `<button class="tag-filter" data-tag="${escapeHtml(t)}" onclick="toggleTagFilter(this)">${escapeHtml(t)}</button>`).join('') + '<button class="tag-filter active" data-tag="" onclick="toggleTagFilter(this)">All</button>';
         }
-    } // <-- This brace was missing
+    }
     
-    // 2. Filter entries (This logic was missing)
+    // Get selected tags AFTER rendering, if forced
+    const selectedTags = Array.from(tagsEl.querySelectorAll('.tag-filter.active')).map(b => b.dataset.tag);
+    
+    // 2. Filter entries
     const filteredLearnings = allLearnings.filter(l => {
         const matchesSearch = !searchTerm || l.text.toLowerCase().includes(searchTerm) || l.tags.some(t => t.toLowerCase().includes(searchTerm));
-        const matchesTags = selectedTags.length === 0 || selectedTags.includes("") || selectedTags.every(st => l.tags.includes(st));
+        // If "All" is selected (dataset.tag is ""), matchesTags is true
+        const matchesTags = selectedTags.includes("") || selectedTags.every(st => l.tags.includes(st));
         return matchesSearch && matchesTags;
     });
 
-    // 3. Render list (This logic was in the wrong place and needs to be here)
+    // 3. Render list
     if (filteredLearnings.length === 0) {
         listEl.innerHTML = '<div class="muted" style="text-align: center; padding: 1rem;">No entries match your filters.</div>';
     } else {
@@ -1822,10 +2437,45 @@ function loadLearnings(forceTagRender = false) {
     }
 }
 
+//
+// BUG FIX 4: Correct logic for tag filtering
+//
 function toggleTagFilter(buttonEl) {
-    buttonEl.classList.toggle('active');
+    const tagsEl = $('learningTagFilters');
+    const allButton = tagsEl.querySelector('.tag-filter[data-tag=""]');
+    const clickedTag = buttonEl.dataset.tag;
+
+    if (clickedTag === "") {
+        // "All" button was clicked
+        // Deactivate all other buttons
+        tagsEl.querySelectorAll('.tag-filter[data-tag]').forEach(btn => {
+            if (btn.dataset.tag !== "") {
+                btn.classList.remove('active');
+            }
+        });
+        // Activate "All" button
+        buttonEl.classList.add('active');
+    } else {
+        // A specific tag was clicked
+        // Toggle its state
+        buttonEl.classList.toggle('active');
+        // Deactivate the "All" button
+        if (allButton) allButton.classList.remove('active');
+    }
+
+    // Check if any specific tags are active
+    const anySpecificTagActive = Array.from(tagsEl.querySelectorAll('.tag-filter[data-tag]')).some(
+        btn => btn.dataset.tag !== "" && btn.classList.contains('active')
+    );
+
+    // If no specific tags are active, re-activate the "All" button
+    if (!anySpecificTagActive && allButton) {
+        allButton.classList.add('active');
+    }
+
     loadLearnings(false); // Re-filter list, don't re-render tags
 }
+
 
 function deleteLearning(id) {
     let learnings = getLearnings();
@@ -2057,11 +2707,33 @@ function getTargets(){ return read('targets', []); }
 function saveTargets(arr){ write('targets', arr); }
 function isDateInCurrentWeek(dateStr) {
     if (!dateStr) return false;
-    const date = new Date(dateStr);
-    const today = new Date();
-    const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+    // const date = new Date(dateStr);
+    // const today = new Date();
+    // const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+    // const lastDayOfWeek = new Date(firstDayOfWeek);
+    // lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 6);
+    // return date >= firstDayOfWeek && date <= lastDayOfWeek;
+
+    // --- FIXED LOGIC ---
+    // The old logic didn't reset the time, causing comparison errors.
+    // e.g., "Sunday 10:00 AM" would be considered "before" "Sunday 11:00 AM"
+    // if 11:00 AM was when the check ran.
+    
+    const date = new Date(dateStr); // The date to check
+    
+    const today = new Date(); // Now
+    const dayOfWeek = today.getDay(); // 0 (Sun) - 6 (Sat)
+    
+    // Create a new date object for the first day of the week (Sunday)
+    const firstDayOfWeek = new Date(today);
+    firstDayOfWeek.setDate(today.getDate() - dayOfWeek);
+    firstDayOfWeek.setHours(0, 0, 0, 0); // Ensure it's the start of Sunday
+
+    // Create a new date object for the last day of the week (Saturday)
     const lastDayOfWeek = new Date(firstDayOfWeek);
-    lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 6);
+    lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
+    lastDayOfWeek.setHours(23, 59, 59, 999); // Ensure it's the end of Saturday
+
     return date >= firstDayOfWeek && date <= lastDayOfWeek;
 }
 function isDateInCurrentMonth(dateStr) {
@@ -2116,7 +2788,8 @@ function loadTargets() {
         container.innerHTML = targets.map(t => `
             <div class="target-item ${t.completed ? 'target-completed' : ''}">
                 <input type="checkbox" class="target-checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTarget(${t.id})">
-                <div style="flex:1;">${escapeHtml(t.text)}</div>
+                <!-- MODIFIED: Added INLINE style for color, but kept class for flex properties -->
+                <div class="item-text" style="color: var(--text-color);">${escapeHtml(t.text)}</div>
                 <div class="target-actions">
                     <button title="Delete" class="btn small ghost" onclick="deleteTarget(${t.id})"><i class="fas fa-trash"></i></button>
                 </div>
@@ -2469,6 +3142,30 @@ function animateCountUp(el, endVal, duration = 400, suffix = '') {
 
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, (m)=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
+// NEW: Onboarding Completion Function
+function finishOnboarding() {
+    const name = $('onboardingName').value.trim();
+    if (name) {
+        // Save the name to the profile
+        let profile = getProfileDetails();
+        profile.name = name;
+        write('profile_details', profile);
+        
+        // Also pre-fill the input on the profile page
+        if ($('userName')) {
+            $('userName').value = name;
+        }
+    }
+    
+    // Mark onboarding as complete
+    write('hasOnboarded', true);
+    
+    // Close the modal
+    $('onboardingModal').style.display = 'none';
+    
+    showToast('Welcome to KorteX! Let\'s get started.');
+}
+
 // NEW helper function to get all dates with data
 function getAllDataDates() {
     let dates = new Set();
@@ -2584,7 +3281,14 @@ function updateTodayCompletedCount(){
     const count = getTasks().filter(t => t.completed && t.completedAt && t.completedAt.startsWith(today)).length;
     animateCountUp($('todayCompletedTasks'), count);
 }
-function loadHomeQuickStats(){ updateTodayQuickStats(); updateSleepInfo(); loadTodaysMood(); populateStudyLinkDropdown(); $('subTitle').textContent = 'Stay focused — check your progress'; } // <-- Modified
+function loadHomeQuickStats(){ 
+    updateTodayQuickStats(); 
+    updateSleepInfo(); 
+    loadTodaysMood(); 
+    populateStudyLinkDropdown(); 
+    $('subTitle').textContent = 'Stay focused — check your progress'; 
+    loadProactiveInsights(); // <-- ADD THIS
+} 
 
 function migrateTasks() {
     if (read('tasks_migrated')) return;
@@ -2608,9 +3312,48 @@ function migrateTasks() {
     console.log(`Migration complete. ${uniqueTasks.length} tasks migrated.`);
 }
 
+//
+// BUG FIX 2: Add Dark Mode Toggle Logic
+//
+function setupDarkMode() {
+    const toggleBtn = $('darkToggle');
+    const doc = document.documentElement;
+
+    // Set initial icon state on load
+    if (doc.classList.contains('dark')) {
+        toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
+    } else {
+        toggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
+    }
+
+    toggleBtn.addEventListener('click', () => {
+        doc.classList.toggle('dark');
+        
+        const isDark = doc.classList.contains('dark');
+        // Save the new state with the correct prefix
+        write('theme', isDark ? 'dark' : 'light');
+        
+        // Update icon
+        if (isDark) {
+            toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
+        } else {
+            toggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
+        }
+    });
+}
+
+
 function initialize(){
+  // NEW: Onboarding Check
+  // This runs before anything else, so the user is forced to see it.
+  if (!read('hasOnboarded')) {
+      $('onboardingModal').style.display = 'block';
+  }
+
   migrateTasks();
-  setDailyQuote(); setupNotificationButton();
+  setDailyQuote(); 
+  setupNotificationButton();
+  setupDarkMode(); // <-- BUG FIX 2: Call the new setup function
   $('todayDate').textContent = new Date().toLocaleDateString();
   initCharts(); loadHomeQuickStats(); loadTasks(); loadProfileDetails();
   // REMOVED: updateDashboard('weekly');
@@ -2640,21 +3383,46 @@ function initialize(){
   // NEW: Log Learning Modal Event
   $('closeLogLearningModal').onclick = () => $('logLearningModal').style.display = 'none';
 
+  // NEW: Conversational Log Modal Event
+  // BUG FIX 5: Corrected syntax error ()_=> to () =>
+  $('closeConversationalLogModal').onclick = () => { 
+      $('conversationalLogModal').style.display = 'none';
+      $('conversationalLogConfirmation').innerHTML = ''; // Clear confirmation
+      $('conversationalLogInput').value = ''; // Clear input
+  };
+  $('conversationalLogSubmitBtn').addEventListener('click', handleConversationalLog);
+
+  // NEW: Onboarding Modal Events
+  $('finishOnboardingBtn').addEventListener('click', finishOnboarding);
+  $('closeOnboardingModal').addEventListener('click', finishOnboarding);
+  $('onboardingName').addEventListener('keyup', (event) => { if (event.key === 'Enter') finishOnboarding(); });
+
+  // NEW: AI Goal Setting Event
+  $('aiSuggestGoalsBtn').addEventListener('click', getAIGoalSuggestions);
+  
+  // BUG FIX 3: Add Export Button listener
+  $('exportBtn').addEventListener('click', exportToCSV);
+
   window.onclick = (event) => { 
     if (event.target == $('aiModal')) $('aiModal').style.display = "none";
     if (event.target == $('apiKeyModal')) $('apiKeyModal').style.display = "none";
     if (event.target == $('logActivityModal')) $('logActivityModal').style.display = "none"; // <-- MODIFIED
     if (event.target == $('addNewTaskModal')) $('addNewTaskModal').style.display = "none"; // <-- Add this
     if (event.target == $('logLearningModal')) $('logLearningModal').style.display = "none"; // <-- NEW
+    if (event.target == $('conversationalLogModal')) $('conversationalLogModal').style.display = "none"; // <-- NEW
     if (event.target == $('weeklyReviewPromptModal')) $('weeklyReviewPromptModal').style.display = "none"; // <-- NEW
+    // NOTE: We intentionally do NOT close the onboarding modal on window click
+    // to ensure the user interacts with it.
   }
   // Chat events
   $('sendChatBtn').addEventListener('click', handleSendMessage);
-  $('chatInput').addEventListener('keyup', (event) => { if (event.key === 'Enter') handleSendMessage(); });
-  loadChatHistory();
-  // Other events
-  $('exportBtn').addEventListener('click', exportToCSV);
-  $('darkToggle').addEventListener('click', ()=>{ document.documentElement.classList.toggle('dark'); });
+  // REMOVED: $('logChatBtn').addEventListener('click', handleConversationalLog);
+  $('chatInput').addEventListener('keyup', (event) => { 
+      if (event.key === 'Enter' && !event.shiftKey) { // MODIFIED: Only send on Enter, not Shift+Enter
+          handleSendMessage(); 
+      }
+  });
+  
   // MODIFIED: Set initial value without animation
   $('xpPoints').textContent = getXP();
   
@@ -2679,16 +3447,20 @@ window.logLearning = logLearning; window.loadLearnings = loadLearnings; window.t
 window.startWeeklyReview = startWeeklyReview; // <-- NEW
 window.planMyDay = planMyDay; // <-- NEW: Expose new function
 window.viewMyPlan = viewMyPlan; // <-- NEW: Expose new function
+window.generateProactiveInsights = generateProactiveInsights; // <-- NEW
+window.loadProactiveInsights = loadProactiveInsights; // <-- NEW
 
+// NEW: Expose conversational log functions
+window.handleConversationalLog = handleConversationalLog;
+window.confirmConversationalLog = confirmConversationalLog;
+window.cancelConversationalLog = cancelConversationalLog;
+
+// NEW: Expose AI target function
+window.addAITarget = addAITarget;
+
+// NEW: Expose log tab function
+window.showLogTab = showLogTab;
 
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
