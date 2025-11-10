@@ -4,10 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>CorteX - AI</title>
-
+ <link rel="icon" type="image/png" href="icon.png">
   <!-- REMOVED: Redundant and buggy FOUC prevention script. -->
   <!-- The correct script is at the end of the <head> block. -->
-
+    
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <!-- FontAwesome -->
@@ -1305,6 +1305,9 @@ function showSection(id, el){
   if(id==='profileSection') loadProfileDetails();
   // NEW: Add auto-scroll when switching to chat section
   if(id==='chatSection') {
+      // --- FIX: Load chat history when switching to this tab ---
+      loadChatHistory();
+      // --- End Fix ---
       setTimeout(() => {
           const chatMessages = $('chatMessages');
           if (chatMessages) {
@@ -1620,16 +1623,34 @@ async function generateProactiveInsights() {
 
     const context = getAIContext(); // Get the rich 7-day summary
     
-    // This is the special "data analyst" prompt, personalized to you (Ayush)
-    const prompt = `You are a proactive data analyst and productivity coach. Your user, Ayush, is a Software Engineering student specializing in AI/ML. He values rational, data-driven feedback.
+    // ---- START OF FIX ----
+    
+    // 1. Get profile details dynamically
+    const profile = getProfileDetails();
+    const userName = profile.name || 'the user'; // Use "the user" as a fallback
+    
+    // 2. Build a dynamic description
+    let userDescription = `Your user, ${userName},`;
+    if (profile.education) {
+        userDescription += ` is a ${profile.education}`;
+    }
+    if (profile.goal) {
+        userDescription += `. Their primary goal is: "${profile.goal}".`;
+    } else {
+        userDescription += ` is tracking their productivity.`; // Generic fallback
+    }
+    userDescription += ` ${userName} values rational, data-driven feedback.`;
+
+    // 3. Build the dynamic prompt
+    const prompt = `You are a proactive data analyst and productivity coach. ${userDescription}
 
     Analyze the following 7-day productivity summary. Find 2-3 actionable, data-backed insights or patterns.
 
-    - Look for correlations (e.g., mood vs. activity).
-    - Look for deviations (e.g., a skill not studied recently).
-    - Look for positive patterns to reinforce (e.g., "deep work" times).
+    - Look for correlations (e.g., 'mood vs. activity').
+    - Look for deviations (e.g., 'a skill not studied recently').
+    - Look for positive patterns to reinforce (e.g., '"deep work" times').
     - Be specific and use the data provided (e.g., "your mood was 2 points higher on days you...").
-    - Address Ayush directly. Keep insights concise (1-2 sentences).
+    - Address ${userName} directly. Keep insights concise (1-2 sentences).
 
     Here is the 7-day data summary:
     ---
@@ -1638,9 +1659,11 @@ async function generateProactiveInsights() {
 
     Return your response *only* as a valid JSON array of strings. Each string is one insight. Do not include any other text, markdown, or explanations.
 
-    Example:
-    ["Ayush, I noticed your average mood was 2.1 points higher on the 3 days you logged a workout. This pattern is strong.", "Heads up: You haven't logged any study time for your 'Python' skill in 5 days. Want to add it to this week's plan?", "Pattern found: You completed 70% of your tasks between 10 AM and 1 PM. That seems to be your peak focus time."]
+    Example (address the user by their name, ${userName}):
+    ["${userName}, I noticed your average mood was 2.1 points higher on the 3 days you logged a workout. This pattern is strong.", "Heads up: You haven't logged any study time for your 'Python' skill in 5 days. Want to add it to this week's plan?", "Pattern found: You completed 70% of your tasks between 10 AM and 1 PM. That seems to be your peak focus time."]
     `;
+    
+    // ---- END OF FIX ----
 
     const responseText = await callGemini(prompt, null); // No button to spin
 
@@ -2160,19 +2183,29 @@ async function getAIGoalSuggestions() {
         .filter(t => !t.completed)
         .map(t => `(${t.period}) ${t.text}`);
     
-    // 2. Build the prompt
-    const prompt = `You are an expert career coach for Ayush, a Software Engineering student specializing in AI/ML.
-His primary, long-term goal is: "${profile.goal}"
+    // ---- START OF FIX ----
+    
+    // 2. Build dynamic user description
+    const userName = profile.name || 'the user';
+    let userContext = `The user's name is ${userName}.`;
+    if (profile.education) {
+        userContext += ` They are a ${profile.education}.`;
+    }
 
-His current defined skills are: [${skills.join(', ')}]
-His current defined projects are: [${projects.join(', ')}]
-His existing active targets are:
+    // 3. Build the prompt
+    const prompt = `You are an expert career coach.
+${userContext}
+The user's primary, long-term goal is: "${profile.goal}"
+
+Their current defined skills are: [${skills.join(', ')}]
+Their current defined projects are: [${projects.join(', ')}]
+Their existing active targets are:
 ${existingTargets.length > 0 ? existingTargets.map(t => `- ${t}`).join('\n') : 'None'}
 
-Your task is to analyze his goal, skills, and projects, and suggest 3-5 concrete, actionable targets.
+Your task is to analyze their goal, skills, and projects, and suggest 3-5 concrete, actionable targets.
 - Suggest a mix of 'week' and 'month' period targets.
 - Ensure suggestions are specific (e.g., "Complete 3 LeetCode medium problems" not "Do LeetCode").
-- Do NOT suggest targets that are already on his active list.
+- Do NOT suggest targets that are already on their active list.
 - Return *only* a valid JSON object in the following format. Do not include any other text, markdown, or explanations.
 
 {
@@ -2183,6 +2216,8 @@ Your task is to analyze his goal, skills, and projects, and suggest 3-5 concrete
   ]
 }
 `;
+    
+    // ---- END OF FIX ----
 
     // 3. Call API
     const responseText = await callGemini(prompt, $('aiSuggestGoalsBtn'));
@@ -3702,6 +3737,10 @@ function initialize(){
   // REMOVED: updateDashboard('weekly');
   updateAnalytics('weekly');
   
+  // --- FIX: Load chat history on startup ---
+  loadChatHistory();
+  // --- End Fix ---
+
   // AI & Modal events
   $('getMotivationBtn').addEventListener('click', getDailyMotivation);
   $('breakdownBtn').addEventListener('click', breakDownTask);
