@@ -765,6 +765,9 @@
       <div class="chart-wrap"> <h4 style="margin:.2rem 0">Study Hours by Skill/Project</h4> <canvas id="chartStudyBySkill" height="140"></canvas> </div>
       <div class="chart-wrap"> <h4 style="margin:.2rem 0">Mood & Productivity Correlation</h4> <canvas id="chartMood" height="140"></canvas> </div>
       <div class="chart-wrap"> <h4 style="margin:.2rem 0">Water Intake (Litres)</h4> <canvas id="chartWater" height="140"></canvas> </div>
+      
+      <!-- NEW: Distraction Chart -->
+      <div class="chart-wrap"> <h4 style="margin:.2rem 0">Distraction Breakdown (mins)</h4> <canvas id="chartDistractions" height="140"></canvas> </div>
     </div>
   </section>
 
@@ -1793,6 +1796,10 @@ function getAIContext() {
     
     let recentSleep = []; // NEW: Add sleep data array
     
+    // NEW: Add Distraction tracking
+    let totalDistractionMins = 0;
+    let distractionMap = {};
+
     for (let i = 0; i < 7; i++) {
         const day = datePlusDays(todayISO(), -i);
 
@@ -1823,6 +1830,16 @@ function getAIContext() {
         if (sleep) { // NEW: Check if sleep data exists
             recentSleep.push({ day, sleep: sleep.sleep, wake: sleep.wake }); // NEW: Add to array
         }
+        
+        // NEW: Aggregate Distractions
+        const distractions = getDistractionsForDay(day);
+        distractions.forEach(d => {
+            const mins = d.mins || 0;
+            totalDistractionMins += mins;
+            // Standardize common names (e.g., "Instagram" and "instagram" are the same)
+            const name = (d.name || 'Unknown').trim().toLowerCase();
+            distractionMap[name] = (distractionMap[name] || 0) + mins;
+        });
     }
     const activeTasks = getTasks().filter(t => !t.completed).length;
     const streak = read('streak', 0);
@@ -1849,6 +1866,21 @@ function getAIContext() {
     }
     context += `- Total Workout: ${totalWorkout} minutes\n`;
     context += `- Total Meditation: ${totalMeditation} minutes\n`;
+    
+    // NEW: Add Distraction context
+    if (totalDistractionMins > 0) {
+        context += `- Total Distraction Time: ${totalDistractionMins} minutes\n`;
+        // Find top distraction
+        const topDistraction = Object.entries(distractionMap).sort((a, b) => b[1] - a[1])[0];
+        if (topDistraction) {
+            // Capitalize the first letter of the distraction name for display
+            const topDistractionName = topDistraction[0].charAt(0).toUpperCase() + topDistraction[0].slice(1);
+            context += `- Top Distraction: ${topDistractionName} (${topDistraction[1]} minutes)\n`;
+        }
+    } else {
+        context += "- No distraction time logged.\n";
+    }
+
     context += `- Total Water Intake: ${totalWater.toFixed(1)} litres\n`;
     context += `- Tasks Completed: ${tasksCompleted}\n`;
     context += `- Pending Tasks: ${activeTasks}\n`;
@@ -1998,6 +2030,7 @@ Your task is to populate the following JSON structure.
 - If 'topic' is mentioned for study, extract it. Try to match it to one of the known topics if possible: [${knownTopics.join(', ')}].
 - 'litres' is for water.
 - For 'sleep', extract 24-hour 'sleep_time' and 'wake_time'.
+- **Also extract any unproductive time, like 'wasted 1 hour on Instagram', 'scrolled for 30 minutes', etc., and put them in the \`distractions\` array with a name and duration.**
 
 {
   "study": [
@@ -2014,6 +2047,9 @@ Your task is to populate the following JSON structure.
   ],
   "sleep": [
     // e.g., { "sleep_time": "23:00", "wake_time": "07:00" }
+  ],
+  "distractions": [
+    // e.g., { "duration_minutes": 60, "name": "Instagram" }
   ]
 }
 
@@ -2069,6 +2105,13 @@ If no activities are found, return an empty object: {}.
         if (logs.sleep && logs.sleep.length > 0) {
             logs.sleep.forEach(s => {
                 confirmationHtml += `<li><b>Sleep:</b> Logged from ${escapeHtml(s.sleep_time)} to ${escapeHtml(s.wake_time)}</li>`;
+                hasLogs = true;
+            });
+        }
+        // NEW: Add distractions to confirmation
+        if (logs.distractions && logs.distractions.length > 0) {
+            logs.distractions.forEach(d => {
+                confirmationHtml += `<li><b>Distraction:</b> ${d.duration_minutes} minutes (${escapeHtml(d.name)})</li>`;
                 hasLogs = true;
             });
         }
@@ -2153,6 +2196,14 @@ function confirmConversationalLog() {
                 logSleep(); // This function logs and updates charts
                 logCount++;
             }
+        });
+    }
+
+    // NEW: Handle distraction logging
+    if (pendingLogData.distractions && pendingLogData.distractions.length > 0) {
+        pendingLogData.distractions.forEach(d => {
+            logDistraction(d.name, d.duration_minutes);
+            logCount++;
         });
     }
 
@@ -3282,6 +3333,34 @@ function loadTodaysMood() {
     }
 }
 
+/* ====== NEW: Distraction Logging Functions ====== */
+function getDistractionsForDay(dayISO) {
+    return read('distractions_' + dayISO, []);
+}
+
+function saveDistractionsForDay(dayISO, arr) {
+    write('distractions_' + dayISO, arr);
+}
+
+function logDistraction(name, mins) {
+    if (!name || !mins || mins <= 0) {
+        console.error("Invalid distraction log:", name, mins);
+        return;
+    }
+    const today = todayISO();
+    const arr = getDistractionsForDay(today);
+    arr.push({ name: name, mins: parseInt(mins), ts: new Date().toISOString() });
+    saveDistractionsForDay(today, arr);
+    
+    showToast(`Logged ${mins} min: ${name}`);
+    
+    // Note: No addXP() call here.
+    // No updateStreak() call needed.
+    
+    // We can update charts if an analytics section for this exists later
+    updateChartsOnDataChange(); 
+}
+
 /* ====== Profile Functions ====== */
 function getProfileDetails() { return read('profile_details', {}); }
 
@@ -3369,6 +3448,16 @@ function initCharts(){
     studyBySkill: { type: 'bar', el: 'chartStudyBySkill', data: { datasets:[{label:'Hours', backgroundColor:['#8b5cf6', '#f97316', '#06b6d4', '#2b7cff', '#a78bfa', '#0ea5a4', '#e04f5f']}]}, options: { plugins: { legend: { display: false } }, indexAxis: 'y' } },
     mood: { type: 'line', el: 'chartMood', data: { datasets: [{label:'Mood (1-5)', yAxisID: 'yMood', borderColor: '#f97316', tension: 0.3}, {label:'Tasks Done', yAxisID: 'yTasks', type: 'bar', backgroundColor: 'rgba(43, 124, 255, 0.5)' }] }, options: { scales: { yMood: { type: 'linear', position: 'left', min: 0, max: 6, ticks: { stepSize: 1 } }, yTasks: { type: 'linear', position: 'right', beginAtZero: true, grid: { drawOnChartArea: false } } } } },
     water: { type: 'bar', el: 'chartWater', data: { datasets:[{label:'Litres', backgroundColor:'rgba(37,99,235,0.7)'}]}, options:{plugins:{legend:{display:false}}} },
+    
+    // NEW: Distraction Chart Config
+    distractions: { type: 'doughnut', el: 'chartDistractions', data: { datasets:[{label:'Minutes', backgroundColor:[
+        '#e04f5f', // danger (red)
+        '#ffb020', // priority-medium (orange)
+        '#596373', // muted (grey)
+        '#3b82f6', // study (blue)
+        '#a855f7', // meditation (purple)
+        '#22c55e'  // workout (green)
+    ]}]}, options:{plugins:{legend:{display:true, position: 'top'}}} },
   };
   for(const key in chartConfigs){
     const config = chartConfigs[key];
@@ -3394,6 +3483,43 @@ function aggregateStudyByCategory(range){
   } else { days.forEach(processDay); }
   return categories;
 }
+
+// NEW: Function to aggregate distractions by name
+function aggregateDistractions(range) {
+    const days = getRangeDays(range);
+    const totals = {};
+
+    const processDay = (day) => {
+        getDistractionsForDay(day).forEach(d => {
+            const mins = Number(d.mins || 0);
+            if (mins > 0) {
+                // Standardize names: "instagram" and "Instagram" become "Instagram"
+                const name = (d.name || 'Unknown').trim();
+                const key = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+                totals[key] = (totals[key] || 0) + mins;
+            }
+        });
+    };
+
+    if (range === 'yearly') {
+        for (const ym of days) {
+            const [y, m] = ym.split('-');
+            for (let d = 1; d <= new Date(y, parseInt(m), 0).getDate(); d++) {
+                processDay(`${ym}-${String(d).padStart(2, '0')}`);
+            }
+        }
+    } else {
+        days.forEach(processDay);
+    }
+    
+    // Don't show "Unknown" if it's 0
+    if (totals['Unknown'] === 0) {
+        delete totals['Unknown'];
+    }
+
+    return totals;
+}
+
 // NEW: Function to aggregate study by linked skill/project
 function aggregateStudyByLink(range) {
     const days = getRangeDays(range);
@@ -3536,6 +3662,12 @@ function updateAnalytics(range='weekly'){
   charts.workoutDist.data.labels = labels.slice(0,6); charts.workoutDist.data.datasets[0].data = dataSets.workout.slice(0,6); charts.workoutDist.update();
   charts.mood.data.labels = labels; charts.mood.data.datasets[0].data = dataSets.mood; charts.mood.data.datasets[1].data = dataSets.moodTasks; charts.mood.update();
   charts.water.data.labels = labels; charts.water.data.datasets[0].data = dataSets.water; charts.water.update();
+  
+  // NEW: Update Distraction Chart
+  const distractionData = aggregateDistractions(range);
+  charts.distractions.data.labels = Object.keys(distractionData);
+  charts.distractions.data.datasets[0].data = Object.values(distractionData).map(v => v.toFixed(0));
+  charts.distractions.update();
 }
 function updateChartsOnDataChange(){ 
     // REMOVED: if ($('dashboardSection').classList.contains('active')) updateDashboard(currentDashboardRange);
@@ -3668,7 +3800,7 @@ function exportToCSV(){
       return;
   }
 
-  let rows = [['date','study_hours','study_topics', 'linked_item', 'workout_mins', 'meditation_mins', 'tasks_completed','sleep','wake', 'mood', 'water_litres']]; 
+  let rows = [['date','study_hours','study_topics', 'linked_item', 'workout_mins', 'meditation_mins', 'tasks_completed','sleep','wake', 'mood', 'water_litres', 'distraction_total_mins', 'distraction_details']]; 
   const allTasks = getTasks();
 
   // NEW: Create link map for export
@@ -3687,6 +3819,13 @@ function exportToCSV(){
       const studyTopics = studyEntries.map(e => e.topic ? e.topic.replace(/"/g, '""') : '').filter(Boolean).join('; '); // <-- Get topics and escape quotes
       const studyLinkedItems = studyEntries.map(e => e.linkedItem && linkMap[e.linkedItem] ? linkMap[e.linkedItem] : '').filter(Boolean).join('; '); // <-- NEW
 
+      // NEW: Get Distraction Data
+      const distractions = getDistractionsForDay(d);
+      const distractionTotalMins = distractions.reduce((sum, dist) => sum + (dist.mins || 0), 0);
+      const distractionDetails = distractions
+          .map(dist => `${dist.name ? dist.name.replace(/"/g, '""') : 'Unknown'}: ${dist.mins || 0}`)
+          .join('; ');
+
       rows.push([
           d, 
           studyHours.toFixed(2), // <-- Use new hours
@@ -3698,7 +3837,9 @@ function exportToCSV(){
           (getSleepForDay(d)||{}).sleep||'', 
           (getSleepForDay(d)||{}).wake||'', 
           mood ? mood.mood : '', 
-          totalWaterForDay(d).toFixed(2)
+          totalWaterForDay(d).toFixed(2),
+          distractionTotalMins, // <-- NEW
+          distractionDetails   // <-- NEW
       ]);
   }
   
