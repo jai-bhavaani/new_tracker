@@ -193,6 +193,11 @@
         background: linear-gradient(180deg, #eab308, #ca8a04); /* Gold/Yellow */
     }
 
+    /* NEW: Sleep Card Color */
+    .summary-card.sleep {
+        background: linear-gradient(180deg, #6366f1, #4f46e5); /* Indigo */
+    }
+
     .chart-wrap{background:var(--card);border-radius:12px;padding:1rem;box-shadow:var(--shadow);margin-bottom:1rem}
    
     /* Helper classes for forms */
@@ -557,42 +562,16 @@
     </div>
     <div style="margin-top:.8rem;display:flex;gap:1rem;flex-wrap:wrap">
       <div style="flex:1;min-width:220px">
+
+
+        
         <div class="card">
             <h3 style="margin:.2rem 0">✨ Daily Motivation</h3>
             <div class="muted" id="quotesContainer" style="min-height: 40px;"> Your daily dose of motivation will appear here. </div>
             <button class="btn small" id="getMotivationBtn" style="margin-top: 0.5rem;"><i class="fas fa-magic"></i> Get Fresh Motivation</button>
         </div>
         
-        <!-- NEW: Quick Navigation Bar -->
-        <div class="card" style="padding: 0.75rem;">
-            <h3 style="margin:.2rem 0 0.5rem">Quick Actions</h3>
-            <!-- MODIFIED: Re-arranged grid and added View Plan button -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-                <!-- Plan My Day Button -->
-                <button class="btn small ghost" onclick="planMyDay()" style="justify-content: center;">
-                    <i class="fas fa-magic"></i>&nbsp;Plan My Day
-                </button>
-                <!-- NEW: View Plan Button -->
-                <button class="btn small ghost" onclick="viewMyPlan()" style="justify-content: center;">
-                    <i class="fas fa-eye"></i>&nbsp;View Plan
-                </button>
-                <button class="btn small ghost" onclick="showSection('targetsSection', null)" style="justify-content: center;">
-                    <i class="fas fa-bullseye"></i>&nbsp;Targets
-                </button>
-                <button class="btn small ghost" onclick="$('logActivityModal').style.display='block'; showLogTab('task');" style="justify-content: center;">
-                    <i class="fas fa-plus"></i>&nbsp;Log Activity
-                </button>
-                <button class="btn small ghost" onclick="$('logLearningModal').style.display='block'" style="justify-content: center;">
-                    <i class="fas fa-lightbulb"></i>&nbsp;Log Learning
-                </button>
-                <button class="btn small ghost" onclick="$('apiKeyModal').style.display='block'" style="justify-content: center;">
-                    <i class="fas fa-key"></i>&nbsp;API Key
-                </button>
-            </div>
-        </div>
-
-      
-
+        
       <div class="card" style="margin-top:1rem">
           <h3 style="margin:.2rem 0">Quick Stats</h3>
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;flex-wrap:wrap">
@@ -626,6 +605,12 @@
               <div id="todayCompletedTasks" style="font-weight:800;font-size:1.2rem">0</div>
               <i class="fas fa-check-circle summary-card-icon"></i> <!-- NEW -->
             </div>
+            <!-- NEW: Sleep Card -->
+            <div class="summary-card sleep" style="min-width:120px">
+              <div class="muted">Last Sleep</div>
+              <div id="todaySleep" style="font-weight:800;font-size:1.2rem">0 hrs</div>
+              <i class="fas fa-bed summary-card-icon"></i> <!-- NEW -->
+            </div>
             <!-- MODIFIED: Added .streak class -->
             <div class="summary-card streak" style="min-width:120px; grid-column: 1 / -1;">
               <div class="muted">Streak</div>
@@ -634,11 +619,48 @@
             </div>
           </div>
         </div>
+        
+        <!-- NEW: Quick Navigation Bar -->
+        <div class="card" style="padding: 0.75rem;">
+            <h3 style="margin:.2rem 0 0.5rem">Quick Actions</h3>
+            <!-- MODIFIED: Re-arranged grid and added View Plan button -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                <!-- Plan My Day Button -->
+                <button class="btn small ghost" onclick="planMyDay()" style="justify-content: center;">
+                    <i class="fas fa-magic"></i>&nbsp;Plan My Day
+                </button>
+                <!-- NEW: View Plan Button -->
+                <button class="btn small ghost" onclick="viewMyPlan()" style="justify-content: center;">
+                    <i class="fas fa-eye"></i>&nbsp;View Plan
+                </button>
+                <button class="btn small ghost" onclick="showSection('targetsSection', null)" style="justify-content: center;">
+                    <i class="fas fa-bullseye"></i>&nbsp;Targets
+                </button>
+                <button class="btn small ghost" onclick="$('logActivityModal').style.display='block'; showLogTab('task');" style="justify-content: center;">
+                    <i class="fas fa-plus"></i>&nbsp;Log Activity
+                </button>
+                <button class="btn small ghost" onclick="$('logLearningModal').style.display='block'" style="justify-content: center;">
+                    <i class="fas fa-lightbulb"></i>&nbsp;Log Learning
+                </button>
+                <button class="btn small ghost" onclick="$('apiKeyModal').style.display='block'" style="justify-content: center;">
+                    <i class="fas fa-key"></i>&nbsp;API Key
+                </button>
+            </div>
+        </div>
+
+      
+
         <!-- NEW: Proactive AI Insights Card -->
       <div class="card" style="margin-top: 1rem;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
               <h3 style="margin:.2rem 0">Proactive Insights</h3>
-              <i class="fas fa-brain" style="color: var(--accent-dark);"></i>
+              <!-- NEW: Button to manually trigger insight generation -->
+              <button class="btn small ghost" id="generateInsightsBtn" 
+                      onclick="generateProactiveInsights()" 
+                      title="Re-analyze 7-day data" 
+                      style="padding: 0.2rem 0.5rem;">
+                  <i class="fas fa-sync-alt"></i>
+              </button>
           </div>
           <div class="muted" style="font-size: 0.85rem; margin-bottom: 0.75rem;">Weekly analysis of your patterns.</div>
           <div id="insightsContainer" style="display: flex; flex-direction: column; gap: 0.5rem; min-height: 50px;">
@@ -648,65 +670,11 @@
               </div>
           </div>
       </div>
-        <!-- REMOVED: Log Study Card -->
-        <!--
-        <div class="card">
-          <h3 style="margin:.2rem 0">Log Study</h3>
-          ...
-        </div>
-        -->
-        
-        <!-- REMOVED: Log Workout Card -->
-        <!--
-        <div class="card" style="margin-top:1rem">
-          <h3 style="margin:.2rem 0">Log Workout</h3>
-          ...
-        </div>
-        -->
-        
-        <!-- REMOVED: Log Water Card -->
-        <!--
-        <div class="card" style="margin-top:1rem">
-            <h3 style="margin:.2rem 0">Log Water Intake</h3>
-            ...
-        </div>
-        -->
-        
-        <!-- REMOVED: Log Meditation Card -->
-        <!--
-        <div class="card" style="margin-top:1rem">
-            <h3 style="margin:.2rem 0">Log Meditation</h3>
-            ...
-        </div>
-        -->
-        
-        <!-- REMOVED: Old Log Learning Card -->
-        <!-- This card's content is now in 'logLearningModal' -->
-        
+  
       </div>
       <div style="flex:1;min-width:300px">
-        <!-- REMOVED: Sleep / Wake Card -->
-        <!--
-        <div class="card">
-          <h3 style="margin:.2rem 0">Sleep / Wake</h3>
-          ...
-          <div style="margin-top:.6rem" id="sleepInfo"></div>
-        </div>
-        -->
-        <!-- RETAINED: Sleep info div, moved outside the removed card so it's still on the home page -->
-        <div class="card" id="sleepInfo" style="margin-bottom: 1rem; padding: 0.75rem 1rem;">
-            <!-- Sleep info will be populated here by logSleep() -->
-        </div>
+        <!-- REMOVED: The old standalone sleep info card -->
         
-        <div class="card" style="margin-top:1rem">
-            <h3 style="margin:.2rem 0">Your Targets</h3>
-            <div class="muted">Review and manage your weekly, monthly, and yearly goals.</div>
-            <div class="form-row" style="margin-top: 1rem;">
-                <button class="btn" onclick="showSection('targetsSection', null)" style="width: 100%; justify-content: center;">
-                    <i class="fas fa-bullseye"></i>&nbsp;Manage Targets
-                </button>
-            </div>
-        </div>
         <div class="card" style="margin-top:1rem">
             <h3 style="margin:.2rem 0">Today's Mood</h3>
             <div class="muted">Log how you're feeling today.</div>
@@ -719,6 +687,16 @@
             </div>
             <div id="loggedMoodInfo" class="muted" style="text-align:center; margin-top:.5rem;"></div>
         </div>
+        <div class="card" style="margin-top:1rem">
+            <h3 style="margin:.2rem 0">Your Targets</h3>
+            <div class="muted">Review and manage your weekly, monthly, and yearly goals.</div>
+            <div class="form-row" style="margin-top: 1rem;">
+                <button class="btn" onclick="showSection('targetsSection', null)" style="width: 100%; justify-content: center;">
+                    <i class="fas fa-bullseye"></i>&nbsp;Manage Targets
+                </button>
+            </div>
+        </div>
+        
         
       <div class="card" style="background: var(--accent); color: white;">
           <h3 style="margin:.2rem 0">✨ Gemini AI Features</h3>
@@ -732,7 +710,7 @@
   </section>
 
   <!-- Floating Action Button -->
-  <button id="fab-task" class="fab-add-task" onclick="$('addNewTaskModal').style.display='block'" title="Add New Task" style="display: none;">
+  <button id="fab-task" class="fab-add-task" onclick="$('conversationalTaskModal').style.display='block'; setConversationalTaskDateToToday();" title="Add New Task" style="display: none;">
       <i class="fas fa-plus"></i>
   </button>
 
@@ -1109,6 +1087,28 @@
   </div>
 </div>
 
+<!-- NEW: Conversational Task Modal -->
+<div id="conversationalTaskModal" class="modal">
+  <div class="modal-content">
+    <span id="closeConversationalTaskModal" class="close-modal">&times;</span>
+    <h3 style="margin:.2rem 0">Log Task with AI</h3>
+    <div class="muted">Use natural language for your task. The AI will extract the details.</div>
+    <div style="display:flex;flex-direction:column;gap:.75rem;margin-top:1rem;">
+        
+        <label for="conversationalTaskDate" class="muted" style="margin-bottom: -0.25rem;">Task Date</label>
+        <input id="conversationalTaskDate" type="date">
+
+        <label for="conversationalTaskInput" class="muted" style="margin-bottom: -0.25rem;">Task Details</label>
+        <textarea id="conversationalTaskInput" rows="3" placeholder="e.g., 'Finish math assignment from 2pm to 4pm, it's high priority'"></textarea>
+        
+        <button class="btn" id="conversationalTaskSubmitBtn" style="justify-content: center;"><i class="fas fa-cogs"></i> Analyze Task</button>
+    </div>
+    <!-- Area for confirmation -->
+    <div id="conversationalTaskConfirmation" style="margin-top: 1rem; line-height: 1.6;"></div>
+  </div>
+</div>
+
+
 <!-- NEW: Weekly Review Prompt Modal -->
 <div id="weeklyReviewPromptModal" class="modal">
   <div class="modal-content" style="max-width: 450px; text-align: center;">
@@ -1223,6 +1223,8 @@ let charts = {};
 let currentAnalyticsRange = 'weekly';
 let notificationInterval = null;
 let chatHistory = [];
+// NEW: Global var for AI task data
+let pendingTaskData = null;
 
 // NOTE: The API key is handled by the user input field on the page.
 // The callGemini function will use the key saved in local storage.
@@ -1391,10 +1393,21 @@ function removeApiKey() {
 async function callGemini(prompt, buttonElement = null, retries = 3, delay = 1000) {
     const apiKey = getApiKey();
     if (!apiKey) {
-        showToast('Please enter and save your Gemini API Key in the Home section.');
-        // You might want to navigate the user to the home section automatically
-        // showSection('homeSection', document.querySelector('.nav-item[data-target="homeSection"]'));
-        return null;
+        // MODIFICATION: Check if the user is on the profile page or home page,
+        // if so, just show the modal, otherwise, navigate them there.
+        const currentSection = document.querySelector('.section.active');
+        if (currentSection && (currentSection.id === 'profileSection' || currentSection.id === 'homeSection')) {
+             $('apiKeyModal').style.display = 'block';
+        } else {
+            // Show toast and navigate
+            showToast('Please set your Gemini API Key first.');
+            showSection('homeSection', document.querySelector('.nav-item[data-target="homeSection"]'));
+            // Use a slight delay to ensure the section is visible before showing modal
+            setTimeout(() => {
+                $('apiKeyModal').style.display = 'block';
+            }, 300);
+        }
+        return null; // Stop execution
     }
 
     const originalButtonHTML = buttonElement ? buttonElement.innerHTML : '';
@@ -1984,6 +1997,7 @@ Your task is to populate the following JSON structure.
 - If the user gives hours (e.g., "2 hours"), convert it to minutes (120).
 - If 'topic' is mentioned for study, extract it. Try to match it to one of the known topics if possible: [${knownTopics.join(', ')}].
 - 'litres' is for water.
+- For 'sleep', extract 24-hour 'sleep_time' and 'wake_time'.
 
 {
   "study": [
@@ -1997,6 +2011,9 @@ Your task is to populate the following JSON structure.
   ],
   "water": [
     // e.g., { "litres": 1.0 }
+  ],
+  "sleep": [
+    // e.g., { "sleep_time": "23:00", "wake_time": "07:00" }
   ]
 }
 
@@ -2045,6 +2062,13 @@ If no activities are found, return an empty object: {}.
         if (logs.water && logs.water.length > 0) {
             logs.water.forEach(w => {
                 confirmationHtml += `<li><b>Water:</b> ${w.litres.toFixed(1)} Litres</li>`;
+                hasLogs = true;
+            });
+        }
+        // NEW: Add sleep to confirmation
+        if (logs.sleep && logs.sleep.length > 0) {
+            logs.sleep.forEach(s => {
+                confirmationHtml += `<li><b>Sleep:</b> Logged from ${escapeHtml(s.sleep_time)} to ${escapeHtml(s.wake_time)}</li>`;
                 hasLogs = true;
             });
         }
@@ -2117,6 +2141,20 @@ function confirmConversationalLog() {
             logCount++;
         });
     }
+    
+    // NEW: Handle sleep logging
+    if (pendingLogData.sleep && pendingLogData.sleep.length > 0) {
+        pendingLogData.sleep.forEach(s => {
+            // We can only log one sleep entry at a time via the form,
+            // so we'll just use the first one if multiple are found.
+            if (s.sleep_time && s.wake_time) {
+                $('sleepTime').value = s.sleep_time;
+                $('wakeTime').value = s.wake_time;
+                logSleep(); // This function logs and updates charts
+                logCount++;
+            }
+        });
+    }
 
     // REMOVED: Chat updates
     // chatHistory.push({ role: 'ai', text: `Done. I've logged all ${logCount} items for you!` });
@@ -2139,27 +2177,149 @@ function confirmConversationalLog() {
 // 3. The cancel function
 function cancelConversationalLog() {
     pendingLogData = null;
-    // REMOVED: Chat updates
-    // chatHistory.push({ role: 'ai', text: "Okay, I've cancelled that." });
-    // renderChat();
-    // removeLogButtons();
-
-    // MODIFIED: Just clear the confirmation div
-    $('conversationalLogConfirmation').innerHTML = '';
+    $('conversationalLogConfirmation').innerHTML = ''; // Just clear the confirmation div
 }
 
-// 4. Helper to remove buttons after choice
-function removeLogButtons() {
-    // MODIFIED: This function is now simpler
-    // It just clears the confirmation div
-    const container = $('conversationalLogConfirmation');
-    if (container) {
-        container.innerHTML = '';
+
+/* ====== NEW: Conversational Task Functions ====== */
+
+// Helper to set date input to today
+function setConversationalTaskDateToToday() {
+    const today = new Date().toISOString().split('T')[0];
+    $('conversationalTaskDate').value = today;
+}
+
+// 1. Main function triggered by "Analyze Task" button
+async function handleConversationalTask() {
+    const input = $('conversationalTaskInput');
+    const message = input.value.trim();
+    if (!message) {
+        showToast("Please enter your task details.");
+        return;
     }
     
-    // REMOVED: Old chat-based logic
-    // const chatMessages = $('chatMessages');
-    // ...
+    // The date is read, but only stored *after* AI confirmation
+    const taskDate = $('conversationalTaskDate').value;
+    if (!taskDate) {
+        showToast("Please select a valid date.");
+        return;
+    }
+
+    // This prompt asks the AI to be a JSON parser
+    const prompt = `
+You are an entity extraction AI. Analyze the user's task description and extract the details.
+Return *only* a valid JSON object. Do not include any other text, markdown, or explanations.
+
+The user's text is: "${message}"
+
+Your task is to populate the following JSON structure:
+- 'task_title': The name of the task.
+- 'priority': (e.g., "high", "medium", or "low"). Default to "medium" if not specified.
+- 'start_time': (e.g., "14:00"). Use 24-hour format. If only one time is given (e.g., "at 3pm"), use it as the start_time.
+- 'end_time': (e.g., "16:00"). Use 24-hour format.
+
+{
+  "task_title": "e.g., Finish math assignment",
+  "priority": "medium",
+  "start_time": "14:00",
+  "end_time": "16:00"
+}
+
+If no details can be extracted, return the title: {"task_title": "${message}", "priority": "medium", "start_time": "", "end_time": ""}
+`;
+
+    // Call the API using the modal submit button for the spinner
+    const responseText = await callGemini(prompt, $('conversationalTaskSubmitBtn'));
+
+    if (!responseText) {
+        $('conversationalTaskConfirmation').innerHTML = `<div class="muted">Sorry, I had trouble understanding that. Please try logging again.</div>`;
+        return;
+    }
+
+    // Parse the JSON and build the confirmation message
+    try {
+        const cleanedResponse = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const taskDetails = JSON.parse(cleanedResponse);
+        
+        // Store the data + the date from the input
+        pendingTaskData = {
+            ...taskDetails,
+            dueDate: taskDate 
+        };
+
+        let confirmationHtml = "Here's what I extracted:<ul>";
+        confirmationHtml += `<li><b>Task:</b> ${escapeHtml(pendingTaskData.task_title || 'Untitled')}</li>`;
+        confirmationHtml += `<li><b>Date:</b> ${escapeHtml(pendingTaskData.dueDate)}</li>`;
+        confirmationHtml += `<li><b>Priority:</b> ${escapeHtml(pendingTaskData.priority || 'medium')}</li>`;
+        if (pendingTaskData.start_time) {
+            confirmationHtml += `<li><b>Time:</b> ${escapeHtml(pendingTaskData.start_time)}${pendingTaskData.end_time ? ` - ${escapeHtml(pendingTaskData.end_time)}` : ''}</li>`;
+        }
+        confirmationHtml += "</ul>";
+
+        // Add the confirmation message with buttons
+        confirmationHtml += `
+            <p>Log this task?</p>
+            <div class="form-row" style="gap: 0.5rem; margin-top: 0.5rem;">
+                <button class="btn small" onclick="confirmConversationalTask()">Yes, Log Task</button>
+                <button class="btn small ghost" onclick="cancelConversationalTask()">Cancel</button>
+            </div>
+        `;
+        
+        $('conversationalTaskConfirmation').innerHTML = confirmationHtml;
+
+    } catch (e) {
+        console.error("Failed to parse task response:", e, responseText);
+        $('conversationalTaskConfirmation').innerHTML = `<div class="muted">Sorry, I got an unexpected response. Could you try phrasing that differently?</div>`;
+    }
+}
+
+// 2. The confirmation function
+function confirmConversationalTask() {
+    if (!pendingTaskData) return;
+
+    const tasks = getTasks();
+    
+    // Create the new task object
+    const newTask = {
+        id: Date.now() + Math.floor(Math.random()*999),
+        title: pendingTaskData.task_title || "Untitled AI Task",
+        description: "Logged via AI", // Simple description
+        priority: pendingTaskData.priority || "medium",
+        category: "personal", // Default category
+        startTime: pendingTaskData.start_time || "",
+        endTime: pendingTaskData.end_time || "",
+        dueDate: pendingTaskData.dueDate, // The date from the input
+        completed: false,
+        createdAt: new Date().toISOString()
+    };
+
+    tasks.push(newTask);
+    saveTasks(tasks);
+    
+    addXP(8); // Same XP as completing a task
+    showToast('AI Task logged successfully!');
+    
+    // If we are on the tasks page, refresh the list
+    if ($('tasksSection').classList.contains('active')) {
+        loadTasks();
+    }
+    
+    pendingTaskData = null;
+    
+    // Show success in modal, then close
+    $('conversationalTaskConfirmation').innerHTML = `<div class="muted" style="color: var(--accent-dark); font-weight: 600;">Done. I've logged the task!</div>`;
+    $('conversationalTaskInput').value = ''; // Clear input on success
+    
+    setTimeout(() => {
+        $('conversationalTaskModal').style.display = 'none';
+        $('conversationalTaskConfirmation').innerHTML = ''; // Clear confirmation
+    }, 1500); // Close modal after 1.5 seconds
+}
+
+// 3. The cancel function
+function cancelConversationalTask() {
+    pendingTaskData = null;
+    $('conversationalTaskConfirmation').innerHTML = ''; // Just clear the confirmation div
 }
 
 /* ====== NEW: AI Goal Setting Functions ====== */
@@ -2526,7 +2686,12 @@ function loadTasks(){
       <input type="checkbox" class="task-checkbox" onchange="toggleTask(event, ${t.id})">
       <!-- MODIFIED: Added INLINE style for color -->
       <div class="item-text"> <div style="font-weight:700; color: var(--text-color);">${escapeHtml(t.title)}</div> ${t.description? `<div class="muted">${escapeHtml(t.description)}</div>` : ''}
-        <div class="task-meta"> <span><i class="fas fa-tag"></i> ${escapeHtml(t.category)}</span> <span class="priority-${t.priority}"><i class="fas fa-flag"></i> ${t.priority}</span> ${t.startTime ? `<span><i class="fas fa-clock"></i> ${t.startTime}${t.endTime? ' - '+t.endTime:''}</span>` : ''} </div>
+        <div class="task-meta"> 
+          <span><i class="fas fa-tag"></i> ${escapeHtml(t.category)}</span> 
+          <span class="priority-${t.priority}"><i class="fas fa-flag"></i> ${t.priority}</span> 
+          ${t.startTime ? `<span><i class="fas fa-clock"></i> ${t.startTime}${t.endTime? ' - '+t.endTime:''}</span>` : ''} 
+          ${t.dueDate ? `<span><i class="fas fa-calendar-alt"></i> ${t.dueDate}</span>` : ''} <!-- NEW: Show Due Date -->
+        </div>
       </div>
       <div class="task-actions"> <button title="Complete" class="btn small" onclick="toggleTask(event, ${t.id})"><i class="fas fa-check"></i></button> <button title="Delete" class="btn small ghost" onclick="deleteTask(${t.id})"><i class="fas fa-trash"></i></button> </div>
     </div>`).join('');
@@ -2802,7 +2967,7 @@ function getAIContextSummary() {
         totalWorkout += totalWorkoutForDay(day);
         totalMeditation += totalMeditationForDay(day);
         tasksCompleted += getTasks().filter(t => t.completed && t.completedAt && t.completedAt.startsWith(day)).length;
-        const mood = getMoodForDay(day);
+        const mood = getMoodForDay(d);
         if (mood) { moodSum += MOOD_MAP[mood.mood] || 0; moodCount++; }
     }
     const activeTasks = getTasks().filter(t => !t.completed).length;
@@ -3155,14 +3320,25 @@ function addXP(amount){
 }
 function updateSleepInfo(){
   const s = getSleepForDay(todayISO());
+  const el = $('todaySleep'); // Get the new element
+  if (!el) return; // Failsafe
+
+  let hours = 0; // Default to 0
   if(s){
     const [sh,sm] = s.sleep.split(':').map(Number);
     const [wh,wm] = s.wake.split(':').map(Number);
     const sleepT = sh*60+sm; const wakeT = wh*60+wm;
     let diff = wakeT > sleepT ? (wakeT-sleepT) : (1440 - sleepT + wakeT);
-    $('sleepInfo').innerHTML = `Last Sleep: <strong>${s.sleep}</strong> - <strong>${s.wake}</strong> (${(diff/60).toFixed(1)} hrs)`;
-  } else {
-    $('sleepInfo').innerHTML = 'No sleep data for today. Log it in the Wellness tab.';
+    hours = parseFloat((diff/60).toFixed(1));
+  }
+  
+  animateCountUp(el, hours, 400, ' hrs');
+
+  // And remove the old div content/logic
+  const oldEl = $('sleepInfo');
+  if (oldEl) {
+     oldEl.innerHTML = ''; // Clear it
+     oldEl.style.display = 'none'; // Hide it
   }
 }
 function updateStreak(){
@@ -3779,6 +3955,15 @@ function initialize(){
   
   // BUG FIX 3: Add Export Button listener
   $('exportBtn').addEventListener('click', exportToCSV);
+  
+  // NEW: Conversational Task Modal Events
+  $('closeConversationalTaskModal').onclick = () => {
+      $('conversationalTaskModal').style.display = 'none';
+      $('conversationalTaskConfirmation').innerHTML = ''; // Clear confirmation
+      $('conversationalTaskInput').value = ''; // Clear input
+  };
+  $('conversationalTaskSubmitBtn').addEventListener('click', handleConversationalTask);
+
 
   window.onclick = (event) => { 
     if (event.target == $('aiModal')) $('aiModal').style.display = "none";
@@ -3787,6 +3972,7 @@ function initialize(){
     if (event.target == $('addNewTaskModal')) $('addNewTaskModal').style.display = "none"; // <-- Add this
     if (event.target == $('logLearningModal')) $('logLearningModal').style.display = "none"; // <-- NEW
     if (event.target == $('conversationalLogModal')) $('conversationalLogModal').style.display = "none"; // <-- NEW
+    if (event.target == $('conversationalTaskModal')) $('conversationalTaskModal').style.display = "none"; // <-- NEW
     if (event.target == $('weeklyReviewPromptModal')) $('weeklyReviewPromptModal').style.display = "none"; // <-- NEW
     // NOTE: We intentionally do NOT close the onboarding modal on window click
     // to ensure the user interacts with it.
@@ -3831,6 +4017,12 @@ window.loadProactiveInsights = loadProactiveInsights; // <-- NEW
 window.handleConversationalLog = handleConversationalLog;
 window.confirmConversationalLog = confirmConversationalLog;
 window.cancelConversationalLog = cancelConversationalLog;
+
+// NEW: Expose conversational task functions
+window.handleConversationalTask = handleConversationalTask;
+window.confirmConversationalTask = confirmConversationalTask;
+window.cancelConversationalTask = cancelConversationalTask;
+window.setConversationalTaskDateToToday = setConversationalTaskDateToToday;
 
 // NEW: Expose AI target function
 window.addAITarget = addAITarget;
