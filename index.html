@@ -566,7 +566,7 @@
 
         
         <div class="card">
-            <h3 style="margin:.2rem 0">✨ Daily Motivation</h3>
+            
             <div class="muted" id="quotesContainer" style="min-height: 40px;"> Your daily dose of motivation will appear here. </div>
             <button class="btn small" id="getMotivationBtn" style="margin-top: 0.5rem;"><i class="fas fa-magic"></i> Get Fresh Motivation</button>
         </div>
@@ -611,11 +611,17 @@
               <div id="todaySleep" style="font-weight:800;font-size:1.2rem">0 hrs</div>
               <i class="fas fa-bed summary-card-icon"></i> <!-- NEW -->
             </div>
-            <!-- MODIFIED: Added .streak class -->
-            <div class="summary-card streak" style="min-width:120px; grid-column: 1 / -1;">
+            <!-- MODIFIED: Added .streak class and REMOVED inline style 'grid-column: 1 / -1;' -->
+            <div class="summary-card streak" style="min-width:120px;">
               <div class="muted">Streak</div>
               <div id="streakCount" style="font-weight:800;font-size:1.2rem">0</div>
               <i class="fas fa-fire summary-card-icon"></i> <!-- NEW -->
+            </div>
+            <!-- NEW: Wasted Time Card -->
+            <div class="summary-card" style="min-width:120px; background: linear-gradient(180deg, #e04f5f, #c13a4a);">
+              <div class="muted">Wasted Time (today)</div>
+              <div id="todayWastedTime" style="font-weight:800;font-size:1.2rem">0 hrs</div>
+              <i class="fas fa-clock summary-card-icon"></i>
             </div>
           </div>
         </div>
@@ -3358,6 +3364,7 @@ function logDistraction(name, mins) {
     
     // We can update charts if an analytics section for this exists later
     updateChartsOnDataChange(); 
+    updateTodayQuickStats(); // <-- ADDED
 }
 
 /* ====== Profile Functions ====== */
@@ -3857,6 +3864,13 @@ function updateTodayQuickStats(){
   animateCountUp($('todayWorkout'), totalWorkoutForDay(todayISO()), 400, ' min');
   animateCountUp($('todayWater'), totalWaterForDay(todayISO()), 400, ' L');
   animateCountUp($('todayMeditation'), totalMeditationForDay(todayISO()), 400, ' min');
+  
+  // NEW: Update wasted time card
+  const distractions = getDistractionsForDay(todayISO());
+  const totalWastedMins = distractions.reduce((sum, d) => sum + (d.mins || 0), 0);
+  const totalWastedHours = (totalWastedMins / 60).toFixed(1);
+  animateCountUp($('todayWastedTime'), parseFloat(totalWastedHours), 400, ' hrs');
+  
   updateTodayCompletedCount();
 }
 function updateTodayCompletedCount(){ 
