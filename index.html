@@ -449,6 +449,32 @@
         font-size: 1.1rem;
     }
 
+    /* LOCK SCREEN STYLES */
+    #lockScreen {
+        position: fixed;
+        inset: 0;
+        background-color: var(--bg);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+    #lockScreen.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+    .shake {
+        animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    @keyframes shake {
+        10%, 90% { transform: translate3d(-1px, 0, 0); }
+        20%, 80% { transform: translate3d(2px, 0, 0); }
+        30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+        40%, 60% { transform: translate3d(4px, 0, 0); }
+    }
+
     /* Responsive */
     @media(max-width:900px){ .tasks-grid{grid-template-columns:1fr} .summary-cards{grid-template-columns:repeat(2,1fr)} header h1{font-size:1rem} .analytics-grid { grid-template-columns: 1fr; } }
     @media(max-width:768px){ 
@@ -523,6 +549,26 @@
   </script>
 </head>
 <body>
+
+<!-- NEW: Lock Screen Overlay -->
+<div id="lockScreen">
+    <div class="card" style="width: 100%; max-width: 320px; text-align: center; padding: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.2);">
+        <div style="font-size: 3rem; color: var(--accent); margin-bottom: 1rem;">
+            <i class="fas fa-lock"></i>
+        </div>
+        <h2 style="margin-bottom: 0.5rem; margin-top: 0;">Security Check</h2>
+        <p class="muted" style="margin-bottom: 1.5rem;">Enter access code to continue.</p>
+        
+        <input type="password" id="pinInput" placeholder="****" maxlength="4" 
+               style="font-size: 1.5rem; text-align: center; letter-spacing: 0.5rem; margin-bottom: 1.5rem; font-weight: bold;"
+               onkeyup="if(event.key === 'Enter') checkPin()">
+        
+        <button class="btn" onclick="checkPin()" style="width: 100%; justify-content: center; font-size: 1.1rem; padding: 0.8rem;">
+            <i class="fas fa-unlock-alt"></i>&nbsp; Unlock App
+        </button>
+    </div>
+</div>
+
 <div class="app" id="app">
   <header class="main-header">
     <div class="title">
@@ -928,6 +974,26 @@
         </div>
     </div>
     
+    <!-- NEW: Data Management Card (Backup/Restore) -->
+    <div class="card" style="margin-top: 1rem;">
+        <h2 style="margin:.2rem 0">Data Management</h2>
+        <div class="muted">Backup your entire history to a file or restore from a backup.</div>
+        
+        <div class="form-row" style="margin-top: 1rem; gap: 1rem;">
+            <!-- Export JSON -->
+            <button class="btn" onclick="exportBackup()" style="flex: 1; justify-content: center; background: linear-gradient(90deg, #3b82f6, #2563eb);">
+                <i class="fas fa-download"></i>&nbsp;Backup (JSON)
+            </button>
+            
+            <!-- Import JSON -->
+            <button class="btn ghost" onclick="triggerRestore()" style="flex: 1; justify-content: center;">
+                <i class="fas fa-upload"></i>&nbsp;Restore Data
+            </button>
+        </div>
+        <!-- Hidden file input for restore -->
+        <input type="file" id="restoreInput" accept=".json" style="display: none;" onchange="handleRestore(this)">
+    </div>
+
     <!-- NEW: Accent Color Theming Card -->
     <div class="card" style="margin-top: 1rem;">
         <h2 style="margin:.2rem 0">Accent Color</h2>
@@ -3724,6 +3790,81 @@ function animateCountUp(el, endVal, duration = 400, suffix = '') {
 
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, (m)=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
+/* ====== NEW: Backup & Restore Functions ====== */
+function exportBackup() {
+    const backup = {};
+    // Iterate through all local storage keys
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        // Only backup keys belonging to this app
+        if (key.startsWith(STORAGE_PREFIX)) {
+            // Remove prefix for the JSON file (cleaner format)
+            const cleanKey = key.substring(STORAGE_PREFIX.length);
+            backup[cleanKey] = read(cleanKey);
+        }
+    }
+    
+    // Create a Blob and trigger download
+    const dataStr = JSON.stringify(backup, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", url);
+    downloadAnchorNode.setAttribute("download", "kortex_backup_" + new Date().toISOString().slice(0,10) + ".json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+    URL.revokeObjectURL(url);
+    
+    showToast('Backup file downloaded!');
+}
+
+function triggerRestore() {
+    $('restoreInput').click();
+}
+
+function handleRestore(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const backup = JSON.parse(e.target.result);
+            if (typeof backup !== 'object' || backup === null) {
+                throw new Error("Invalid JSON structure");
+            }
+            
+            // Safety Check: Ask user before overwriting
+            if(!confirm("⚠️ Warning: This will OVERWRITE your current data with the backup file. This cannot be undone.\n\nAre you sure you want to proceed?")) {
+                input.value = ''; // Reset input so change event can fire again if needed
+                return;
+            }
+
+            // Perform Restore
+            let restoredCount = 0;
+            for (const key in backup) {
+                // We use write() which automatically adds the STORAGE_PREFIX
+                write(key, backup[key]);
+                restoredCount++;
+            }
+            
+            showToast(`Success! Restored ${restoredCount} data points.`);
+            
+            // Reload to apply changes cleanly
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+
+        } catch (err) {
+            console.error("Restore failed:", err);
+            showToast('Error: Invalid backup file.');
+        }
+    };
+    reader.readAsText(file);
+}
+
 // NEW: Onboarding Completion Function
 function finishOnboarding() {
     const name = $('onboardingName').value.trim();
@@ -3968,6 +4109,35 @@ function setTheme(colorName) {
     }
 }
 
+/* LOCK SCREEN LOGIC */
+const CORRECT_PIN = "9652";
+
+function checkPin() {
+    const input = $('pinInput');
+    const val = input.value;
+    
+    if (val === CORRECT_PIN) {
+        // Correct PIN
+        $('lockScreen').classList.add('hidden');
+        sessionStorage.setItem('kortex_unlocked', 'true'); // Keep unlocked for this session
+        showToast('Access Granted');
+    } else {
+        // Wrong PIN
+        input.classList.add('shake');
+        input.style.borderColor = 'var(--danger)';
+        input.value = ''; // Clear input
+        
+        // Remove shake class after animation so it can be triggered again
+        setTimeout(() => {
+            input.classList.remove('shake');
+            input.style.borderColor = '';
+            input.focus();
+        }, 500);
+        
+        showToast('Access Denied: Wrong Code');
+    }
+}
+
 /* ====== NEW: Confetti Animation ====== */
 function triggerConfetti(x, y) {
     const particleCount = 30; // Number of particles
@@ -4044,8 +4214,25 @@ function loadTheme() {
     setTheme(savedColor);
 }
 
+// NEW: Check Lock State on Load
+function checkLockState() {
+    const isUnlocked = sessionStorage.getItem('kortex_unlocked');
+    if (isUnlocked === 'true') {
+        $('lockScreen').style.display = 'none';
+    } else {
+        // Ensure input is focused
+        setTimeout(() => {
+            const pinInput = $('pinInput');
+            if (pinInput) pinInput.focus();
+        }, 500);
+    }
+}
+
 
 function initialize(){
+  // NEW: Check lock state first
+  checkLockState();
+
   // NEW: Onboarding Check
   // This runs before anything else, so the user is forced to see it.
   if (!read('hasOnboarded')) {
@@ -4189,6 +4376,11 @@ window.setTheme = setTheme;
 
 // NEW: Expose confetti (though it's called by internal functions)
 window.triggerConfetti = triggerConfetti;
+
+// NEW: Expose Backup/Restore
+window.exportBackup = exportBackup;
+window.triggerRestore = triggerRestore;
+window.handleRestore = handleRestore;
 
 </script>
 </body>
