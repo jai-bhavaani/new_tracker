@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AppSection, ThemeConfig, UserProfile, ToastMessage } from './types';
 import { APP_NAME } from './constants';
@@ -188,11 +187,14 @@ const App: React.FC = () => {
         </header>
 
         {/* Scrollable Main Area */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 pb-32 md:pb-8 custom-scrollbar">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 pb-8 md:pb-8 custom-scrollbar">
           <div className="max-w-7xl mx-auto w-full h-full">
             {renderSection()}
           </div>
         </main>
+
+        {/* Mobile-only spacer so the fixed BottomNav doesn't overlap page content */}
+        <div className="md:hidden" style={{ height: 'calc(5rem + env(safe-area-inset-bottom))' }} />
 
         {/* Mobile Navigation */}
         <BottomNav 
