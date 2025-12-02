@@ -1,5 +1,3 @@
-
-
 import { STORAGE_PREFIX, DEFAULT_STATS } from '../constants';
 import { DailyStats, Task, UserProfile, ThemeConfig, Target, LearningEntry, GamificationState } from '../types';
 
@@ -38,14 +36,23 @@ export const storageService = {
   },
 
   /**
-   * Returns today's date as an ISO string (YYYY-MM-DD) for comparison
+   * Returns today's date key (YYYY-MM-DD) using a local timezone reset hour.
+   * Default resetHour = 2 (02:00 local time).
    */
-  getTodayISO: (): string => {
-    // Using local date to ensure correct streaks based on user's timezone
-    const d = new Date();
-    const offset = d.getTimezoneOffset() * 60000;
-    const localDate = new Date(d.getTime() - offset);
-    return localDate.toISOString().split('T')[0];
+  getTodayISO: (resetHour: number = 2): string => {
+    const now = new Date();
+
+    // Build today's reset time in local timezone at resetHour:00
+    const resetToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), resetHour, 0, 0, 0);
+
+    // If current time is before today's reset hour, use previous day
+    const targetDate = now >= resetToday ? resetToday : new Date(resetToday.getTime() - 24 * 60 * 60 * 1000);
+
+    // Return YYYY-MM-DD in local timezone
+    const yyyy = targetDate.getFullYear();
+    const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(targetDate.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
   },
 
   /**
@@ -56,41 +63,46 @@ export const storageService = {
   updateDailyStats: (updates: Partial<DailyStats>): DailyStats => {
     try {
       const currentStats = storageService.read<DailyStats>('stats', DEFAULT_STATS);
-      
-      // Streak Calculation Logic
-      const today = storageService.getTodayISO();
-      const lastDateStr = currentStats.lastUpdated.split('T')[0];
-      let streakDays = currentStats.streakDays;
 
-      // If the last update was NOT today, we need to check streak continuity
-      if (lastDateStr !== today) {
-         const d = new Date();
-         d.setDate(d.getDate() - 1);
-         const yesterday = d.toISOString().split('T')[0]; // Note: This should use proper date subtraction logic in real apps
-         
-         // Simple check: Did we log yesterday? 
-         // NOTE: For a robust app, parse the date strings to compare
-         const lastDate = new Date(lastDateStr);
-         const todayDate = new Date(today);
-         const diffTime = Math.abs(todayDate.getTime() - lastDate.getTime());
-         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      // Use the same local date-key format (YYYY-MM-DD) with 02:00 reset
+      const todayKey = storageService.getTodayISO(2);
 
-         if (diffDays <= 1) {
-           // Consecutive day or same day (should be caught above)
-           if (lastDateStr !== today) streakDays += 1;
-         } else {
-           // Gap detected
-           streakDays = 1;
-         }
+      // Normalize lastUpdated to a YYYY-MM-DD local key (support legacy ISO)
+      let lastDateStr = '';
+      if (!currentStats.lastUpdated) {
+        lastDateStr = '';
+      } else if (currentStats.lastUpdated.includes('T')) {
+        const d = new Date(currentStats.lastUpdated); // legacy ISO timestamp
+        lastDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      } else {
+        lastDateStr = currentStats.lastUpdated;
       }
 
-      const newStats = { 
-        ...currentStats, 
-        ...updates, 
-        streakDays, 
-        lastUpdated: new Date().toISOString() 
+      let streakDays = currentStats.streakDays || 0;
+
+      if (lastDateStr !== todayKey) {
+        // Compare using local midnight dates to get an integer day difference
+        const lastDate = lastDateStr ? new Date(`${lastDateStr}T00:00:00`) : null;
+        const todayDate = new Date(`${todayKey}T00:00:00`);
+        const diffDays = lastDate ? Math.round((todayDate.getTime() - lastDate.getTime()) / (24 * 60 * 60 * 1000)) : Infinity;
+
+        if (diffDays === 1) {
+          // consecutive day
+          streakDays += 1;
+        } else {
+          // broken streak or first run
+          streakDays = 1;
+        }
+      }
+
+      const newStats = {
+        ...currentStats,
+        ...updates,
+        streakDays,
+        // store lastUpdated as the local date-key so comparisons are consistent
+        lastUpdated: todayKey
       };
-      
+
       storageService.write('stats', newStats);
       return newStats;
     } catch (error) {
