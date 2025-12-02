@@ -6,6 +6,7 @@ export const STORAGE_PREFIX = 'prodtrk_';
 export const NAV_ITEMS: NavItem[] = [
   { id: AppSection.HOME, label: 'Home', iconClass: 'fa-solid fa-house' },
   { id: AppSection.TASKS, label: 'Tasks', iconClass: 'fa-solid fa-list-check' },
+  { id: AppSection.HABITS, label: 'Habits', iconClass: 'fa-solid fa-seedling' },
   { id: AppSection.ANALYTICS, label: 'Analytics', iconClass: 'fa-solid fa-chart-line' },
   { id: AppSection.LEARNINGS, label: 'Learnings', iconClass: 'fa-solid fa-book-open' },
   { id: AppSection.CHAT, label: 'Chat', iconClass: 'fa-solid fa-comments' },

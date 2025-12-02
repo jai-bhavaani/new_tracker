@@ -8,6 +8,7 @@ import { Tasks } from './views/Tasks';
 import { Analytics } from './views/Analytics';
 import { Learnings } from './views/Learnings';
 import { Chat } from './views/Chat';
+import { Habits } from './views/Habits';
 import { ProfileModal } from './components/ProfileModal';
 import { Toast } from './components/Toast';
 import { MorningBriefingModal } from './components/MorningBriefingModal';
@@ -117,6 +118,8 @@ const App: React.FC = () => {
         return <Home showToast={showToast} />;
       case AppSection.TASKS:
         return <Tasks showToast={showToast} />;
+      case AppSection.HABITS:
+        return <Habits showToast={showToast} />;
       case AppSection.ANALYTICS:
         return <Analytics />;
       case AppSection.LEARNINGS:

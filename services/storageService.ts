@@ -1,5 +1,5 @@
 import { STORAGE_PREFIX, DEFAULT_STATS } from '../constants';
-import { DailyStats, Task, UserProfile, ThemeConfig, Target, LearningEntry, GamificationState } from '../types';
+import { DailyStats, Task, UserProfile, ThemeConfig, Target, LearningEntry, GamificationState, Habit } from '../types';
 
 export const storageService = {
   /**
@@ -474,6 +474,14 @@ export const storageService = {
       detailedActivityLog: detailedHistory,
       weeklyAggregates: weeklyHistory
     };
+  },
+
+  getHabits: (): Habit[] => {
+    return storageService.read<Habit[]>('habits', []);
+  },
+
+  saveHabits: (habits: Habit[]): void => {
+    storageService.write('habits', habits);
   },
 
   createBackup: (): string => {

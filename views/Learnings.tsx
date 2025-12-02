@@ -18,6 +18,7 @@ export const Learnings: React.FC = () => {
   const [journalTags, setJournalTags] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isTagging, setIsTagging] = useState(false);
+  const [isDecomposing, setIsDecomposing] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -71,6 +72,11 @@ export const Learnings: React.FC = () => {
     const updated = targets.filter(t => t.id !== id);
     setTargets(updated);
     storageService.write('targets', updated);
+  };
+
+  const handleDecompose = async (target: Target) => {
+    // Will be implemented in the next steps
+    console.log('Decomposing target:', target);
   };
 
   // --- Journal Logic ---
@@ -225,6 +231,13 @@ export const Learnings: React.FC = () => {
                         <span className={`flex-1 text-sm ${target.completed ? 'text-text-muted line-through' : 'text-text-main'}`}>
                           {target.text}
                         </span>
+                        <button 
+                          onClick={() => handleDecompose(target)}
+                          className="text-text-muted hover:text-accent-teal opacity-0 group-hover:opacity-100 transition-all px-2"
+                          title="Decompose goal with AI"
+                        >
+                          <i className="fa-solid fa-wand-magic-sparkles"></i>
+                        </button>
                         <button 
                           onClick={() => deleteTarget(target.id)}
                           className="text-text-muted hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all px-2"

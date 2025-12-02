@@ -187,6 +187,47 @@ export const aiService = {
   },
 
   /**
+   * Breaks down a goal into actionable sub-tasks.
+   */
+  generateSubTasks: async (goal: string): Promise<string[]> => {
+    const ai = getAiClient();
+    if (!ai) return [];
+    if (!goal.trim()) return [];
+
+    const prompt = `
+      You are a world-class productivity coach and project manager.
+      A user has this high-level goal: "${goal}".
+
+      Break it down into 3-5 smaller, actionable, and concrete tasks that can be completed in a short amount of time (a day or a few days).
+      The tasks should be specific and measurable.
+      
+      Return ONLY a JSON array of strings, where each string is a task description.
+      For example: ["Task 1 description", "Task 2 description", "Task 3 description"]
+    `;
+
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING }
+          }
+        }
+      });
+      
+      const text = response.text;
+      if (!text) return [];
+      return JSON.parse(text);
+    } catch (error) {
+      console.error("Goal Decomposition Error:", error);
+      return [];
+    }
+  },
+
+  /**
    * Generates relevant hashtags for journal entries.
    */
   generateJournalTags: async (content: string): Promise<string[]> => {

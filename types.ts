@@ -3,6 +3,7 @@
 export enum AppSection {
   HOME = 'HOME',
   TASKS = 'TASKS',
+  HABITS = 'HABITS',
   ANALYTICS = 'ANALYTICS',
   LEARNINGS = 'LEARNINGS',
   CHAT = 'CHAT'
@@ -51,6 +52,18 @@ export interface Task {
   repeating?: TaskRepetition;
   dueDate?: string; // YYYY-MM-DD
 }
+
+export interface Habit {
+  id: string;
+  title: string;
+  description?: string;
+  category: string;
+  createdAt: string; // ISO Date string
+  lastCompletedAt?: string; // ISO Date string
+  currentStreak: number;
+  longestStreak: number;
+}
+
 
 export type TargetPeriod = 'Weekly' | 'Monthly' | 'Yearly';
 
