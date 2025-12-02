@@ -13,6 +13,7 @@ import { Toast } from './components/Toast';
 import { MorningBriefingModal } from './components/MorningBriefingModal';
 import { storageService } from './services/storageService';
 import { aiService } from './services/aiService';
+import { notificationService } from './services/notificationService';
 
 const App: React.FC = () => {
   const [currentSection, setCurrentSection] = useState<AppSection>(AppSection.HOME);
@@ -34,6 +35,11 @@ const App: React.FC = () => {
     const savedTheme = storageService.read<ThemeConfig>('theme', { mode: 'dark', accentColor: '#2dd4bf' });
     applyTheme(savedTheme);
     setTheme(savedTheme);
+    
+    // Schedule notifications if permission is already granted
+    if (notificationService.getPermissionStatus() === 'granted') {
+      notificationService.scheduleReminders();
+    }
   }, []);
 
   // Check for Morning Briefing on Load

@@ -5,7 +5,7 @@ import { TaskPriority, TaskRepetition } from '../types';
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (title: string, description: string, priority: TaskPriority, category: string, repeating: TaskRepetition) => void;
+  onSave: (title: string, description: string, priority: TaskPriority, category: string, repeating: TaskRepetition, dueDate?: string) => void;
 }
 
 export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave }) => {
@@ -14,19 +14,21 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave })
   const [priority, setPriority] = useState<TaskPriority>(TaskPriority.MEDIUM);
   const [category, setCategory] = useState('General');
   const [repeating, setRepeating] = useState<TaskRepetition>('None');
+  const [dueDate, setDueDate] = useState('');
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
-    onSave(title, description, priority, category, repeating);
+    onSave(title, description, priority, category, repeating, dueDate);
     // Reset form
     setTitle('');
     setDescription('');
     setPriority(TaskPriority.MEDIUM);
     setCategory('General');
     setRepeating('None');
+    setDueDate('');
     onClose();
   };
 
@@ -98,6 +100,17 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave })
                 <option value={TaskPriority.HIGH}>High</option>
               </select>
             </div>
+          </div>
+          
+          {/* Due Date */}
+          <div>
+            <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">Due Date (Optional)</label>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="w-full bg-glass-surface border border-glass-border rounded-lg px-4 py-3 text-text-main placeholder-text-muted focus:outline-none focus:border-accent-teal focus:ring-1 focus:ring-accent-teal transition-all"
+            />
           </div>
 
           {/* Repeating */}

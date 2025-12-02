@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { UserProfile, ThemeConfig } from '../types';
 import { storageService } from '../services/storageService';
+import { notificationService } from '../services/notificationService';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -32,6 +32,9 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   const [apiKey, setApiKey] = useState('');
   const [isApiKeyVisible, setIsApiKeyVisible] = useState(false);
 
+  // Notification State
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'not_set'>(notificationService.getPermissionStatus());
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -47,6 +50,9 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
     
     // Load custom API key
     setApiKey(storageService.read<string>('gemini_api_key', ''));
+
+    // Update notification permission state on open
+    setNotificationPermission(notificationService.getPermissionStatus());
   }, [isOpen, currentTheme]);
 
   if (!isOpen) return null;
@@ -61,6 +67,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
     storageService.write('gemini_api_key', apiKey);
     
     onClose();
+  };
+
+  const handleRequestNotification = async () => {
+    const permission = await notificationService.requestPermission();
+    setNotificationPermission(permission);
+    if (permission === 'granted') {
+      notificationService.scheduleReminders();
+    }
   };
 
   const handleBackup = () => {
@@ -183,6 +197,35 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
             </div>
           </div>
 
+          {/* Notifications */}
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold text-text-muted uppercase tracking-widest border-b border-glass-border pb-2">Notifications</h3>
+            <div className="flex items-center justify-between p-3 bg-glass-surface rounded-lg">
+              <div>
+                <p className="text-sm font-medium text-text-main">Reminder Notifications</p>
+                <p className="text-xs text-text-muted">Status: 
+                  <span className={`font-bold ${
+                    notificationPermission === 'granted' ? 'text-green-400' :
+                    notificationPermission === 'denied' ? 'text-red-400' :
+                    'text-orange-400'
+                  }`}>
+                    {notificationPermission === 'not_set' ? ' Not Enabled' : ` ${notificationPermission.charAt(0).toUpperCase() + notificationPermission.slice(1)}`}
+                  </span>
+                </p>
+              </div>
+              {notificationPermission !== 'granted' && (
+                <button
+                  type="button"
+                  onClick={handleRequestNotification}
+                  className="bg-accent-teal hover:bg-accent-hover text-dark-bg font-bold py-2 px-4 rounded-lg text-xs transition-all"
+                  disabled={notificationPermission === 'denied'}
+                >
+                  {notificationPermission === 'denied' ? 'Permission Denied' : 'Enable'}
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* API Configuration */}
           <div className="space-y-4">
             <h3 className="text-xs font-bold text-text-muted uppercase tracking-widest border-b border-glass-border pb-2">API Configuration</h3>
@@ -213,9 +256,6 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
           {/* Theme Settings */}
           <div className="space-y-4">
             <h3 className="text-xs font-bold text-text-muted uppercase tracking-widest border-b border-glass-border pb-2">Appearance</h3>
-            
-            {/* Theme Mode Toggle Removed as requested in previous steps, assuming it lives in Header now. 
-                But keeping Color Selection as it fits 'Settings'. */}
             
             <div>
               <span className="block text-sm text-text-main mb-3">Accent Color</span>

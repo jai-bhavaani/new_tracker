@@ -5,25 +5,50 @@ import { aiService } from '../services/aiService';
 import { storageService } from '../services/storageService';
 
 export const Chat: React.FC = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'welcome',
-      role: 'model',
-      text: 'Hello! I am KorteX AI. I have access to your tasks and stats. How can I help you optimize your productivity today?',
-      timestamp: new Date().toISOString()
-    }
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Effect to load messages from storage on initial render
+  useEffect(() => {
+    const savedMessages = storageService.read<ChatMessage[]>('chat_history', [
+      {
+        id: 'welcome',
+        role: 'model',
+        text: 'Hello! I am KorteX AI. I have access to your tasks and stats. How can I help you optimize your productivity today?',
+        timestamp: new Date().toISOString()
+      }
+    ]);
+    setMessages(savedMessages);
+  }, []);
+
+  // Effect to save messages to storage and enforce a limit
+  useEffect(() => {
+    // Don't run on the initial empty array
+    if (messages.length === 0) return;
+
+    // Keep the welcome message + the last 10 conversation messages
+    const welcomeMessage = messages.find(m => m.id === 'welcome') || messages[0];
+    const conversationMessages = messages.filter(m => m.id !== 'welcome');
+
+    const limitedConversation = conversationMessages.slice(-10);
+    
+    const messagesToSave = [welcomeMessage, ...limitedConversation];
+    
+    // Only write to storage if there was an actual change
+    if (messages.length !== messagesToSave.length) {
+      setMessages(messagesToSave);
+    }
+    
+    storageService.write('chat_history', messagesToSave);
+    scrollToBottom();
+  }, [messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();

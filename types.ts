@@ -49,6 +49,7 @@ export interface Task {
   createdAt: string; // ISO Date string
   completedAt?: string; // ISO Date string
   repeating?: TaskRepetition;
+  dueDate?: string; // YYYY-MM-DD
 }
 
 export type TargetPeriod = 'Weekly' | 'Monthly' | 'Yearly';

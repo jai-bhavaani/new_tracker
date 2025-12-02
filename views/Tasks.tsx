@@ -36,7 +36,7 @@ export const Tasks: React.FC<TasksProps> = ({ showToast }) => {
     setTasks(savedTasks);
   };
 
-  const addNewTask = (title: string, description: string, priority: TaskPriority, category: string, repeating: TaskRepetition = 'None') => {
+  const addNewTask = (title: string, description: string, priority: TaskPriority, category: string, repeating: TaskRepetition = 'None', dueDate?: string) => {
     const newTask: Task = {
       id: crypto.randomUUID(),
       title,
@@ -45,7 +45,8 @@ export const Tasks: React.FC<TasksProps> = ({ showToast }) => {
       category,
       completed: false,
       createdAt: new Date().toISOString(),
-      repeating
+      repeating,
+      dueDate
     };
     
     const updatedTasks = [...tasks, newTask];
@@ -194,6 +195,12 @@ export const Tasks: React.FC<TasksProps> = ({ showToast }) => {
 
   const currentList = getSortedTasks();
 
+  const isOverdue = (dueDate: string): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize today to the start of the day
+    return new Date(dueDate) < today;
+  };
+
   return (
     <div className="pb-24 animate-fade-in relative">
       <div className="flex justify-between items-center mb-6">
@@ -255,7 +262,7 @@ export const Tasks: React.FC<TasksProps> = ({ showToast }) => {
               </button>
               
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <h3 className={`font-medium truncate ${task.completed ? 'text-text-muted line-through' : 'text-text-main'}`}>
                     {task.title}
                   </h3>
@@ -266,6 +273,11 @@ export const Tasks: React.FC<TasksProps> = ({ showToast }) => {
                      <span className="text-[10px] px-2 py-0.5 rounded border border-purple-500/20 bg-purple-500/10 text-purple-400 flex items-center gap-1">
                         <i className="fa-solid fa-rotate-right text-[8px]"></i> {task.repeating}
                      </span>
+                  )}
+                  {task.dueDate && !task.completed && (
+                    <span className={`text-[10px] px-2 py-0.5 rounded border flex items-center gap-1 ${isOverdue(task.dueDate) ? 'border-red-500/20 bg-red-500/10 text-red-400' : 'border-glass-border'}`}>
+                      <i className="fa-regular fa-calendar"></i> {new Date(task.dueDate).toLocaleDateString()}
+                    </span>
                   )}
                 </div>
                 {task.description && (
@@ -297,7 +309,7 @@ export const Tasks: React.FC<TasksProps> = ({ showToast }) => {
       <TaskModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        onSave={(t, d, p, c, r) => addNewTask(t, d, p, c, r)} 
+        onSave={(title, description, priority, category, repeating, dueDate) => addNewTask(title, description, priority, category, repeating, dueDate)} 
       />
 
       {/* Smart Add Task Modal */}
