@@ -32,7 +32,7 @@ export const Home: React.FC<HomeProps> = ({ showToast }) => {
 
   useEffect(() => {
     // Load Stats
-    const savedStats = storageService.read<DailyStats>('stats', DEFAULT_STATS);
+    const savedStats = storageService.getTodaysStats();
     setStats(savedStats);
 
     // Load User
@@ -55,7 +55,7 @@ export const Home: React.FC<HomeProps> = ({ showToast }) => {
 
   const handleSaveActivity = (category: 'study' | 'workout' | 'wellness' | 'sleep' | 'distractions', data: any) => {
     let xpEarned = 0;
-    const currentStats = storageService.read<DailyStats>('stats', DEFAULT_STATS);
+    const currentStats = storageService.getTodaysStats();
     let updates: Partial<DailyStats> = {};
     let notificationType: 'success' | 'xp' | 'info' | 'error' = 'success';
     let notificationMsg = 'Activity logged successfully';

@@ -37,39 +37,43 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch Event - Serve from Cache or Network
+// Fetch Event - Serve from Cache or Network, with SPA fallback
 self.addEventListener('fetch', (event) => {
+  // For navigation requests, use a network-first strategy with a fallback to the cached index.html.
+  // This is crucial for single-page applications.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        // If the network fails (e.g., offline), or for any other fetch error,
+        // serve the main index.html page from the cache.
+        return caches.match('./index.html');
+      })
+    );
+    return;
+  }
+
+  // For all other requests (CSS, images, API calls, etc.), use a cache-first strategy.
   event.respondWith(
     caches.match(event.request).then((response) => {
-      // Return cached response if found
+      // If the request is in the cache, return it.
       if (response) {
         return response;
       }
-      
-      // Otherwise fetch from network
+
+      // If the request is not in the cache, fetch it from the network.
       return fetch(event.request).then((networkResponse) => {
-        // Check if we received a valid response
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          // For CDN requests (cors/opaque), type might be 'cors' or 'opaque', so we allow those too for caching
-          // But strict 'basic' check is for own-origin. 
-          // Simplified: just return network response if valid-ish
+        // Don't cache opaque responses (e.g., from some CDNs) or non-200 responses.
+        if (!networkResponse || networkResponse.status !== 200 || (networkResponse.type !== 'basic' && networkResponse.type !== 'cors')) {
           return networkResponse;
         }
 
-        // Clone the response to cache it
+        // Clone the response to cache it for future use.
         const responseToCache = networkResponse.clone();
-
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, responseToCache);
         });
 
         return networkResponse;
-      }).catch(() => {
-        // Fallback or offline page logic could go here
-        // For a SPA, we might return index.html for navigation requests
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
-        }
       });
     })
   );

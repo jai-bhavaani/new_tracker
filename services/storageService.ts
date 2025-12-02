@@ -46,7 +46,12 @@ export const storageService = {
     const resetToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), resetHour, 0, 0, 0);
 
     // If current time is before today's reset hour, use previous day
-    const targetDate = now >= resetToday ? resetToday : new Date(resetToday.getTime() - 24 * 60 * 60 * 1000);
+    // Create a new Date object from 'now' to avoid mutation
+    const targetDate = new Date(now);
+    if (now < resetToday) {
+      // It's before the reset time, so we should use the previous day's date key.
+      targetDate.setDate(targetDate.getDate() - 1);
+    }
 
     // Return YYYY-MM-DD in local timezone
     const yyyy = targetDate.getFullYear();
@@ -56,51 +61,57 @@ export const storageService = {
   },
 
   /**
+   * Gets the daily stats object.
+   * If the stats are from a previous day, it resets them, preserving the streak.
+   */
+  getTodaysStats: (): DailyStats => {
+    const currentStats = storageService.read<DailyStats>('stats', DEFAULT_STATS);
+    const todayKey = storageService.getTodayISO(2);
+
+    let lastDateStr = '';
+    if (currentStats.lastUpdated) {
+      lastDateStr = currentStats.lastUpdated.split('T')[0];
+    }
+
+    if (lastDateStr === todayKey) {
+      return currentStats; // Data is current, return as is.
+    }
+
+    // Data is from a previous day, reset stats but preserve streak.
+    const lastDate = lastDateStr ? new Date(`${lastDateStr}T00:00:00`) : null;
+    const todayDate = new Date(`${todayKey}T00:00:00`);
+    const diffDays = lastDate ? Math.round((todayDate.getTime() - lastDate.getTime()) / (24 * 60 * 60 * 1000)) : Infinity;
+
+    let streakDays = currentStats.streakDays || 0;
+    if (diffDays === 1) {
+      streakDays += 1; // Consecutive day
+    } else {
+      streakDays = 1; // Broken streak or first run
+    }
+
+    const newStats: DailyStats = {
+      ...DEFAULT_STATS,
+      streakDays,
+      lastUpdated: todayKey
+    };
+    
+    storageService.write('stats', newStats);
+    return newStats;
+  },
+
+  /**
    * Updates the daily stats object by merging provided updates.
    * Handles initialization if stats don't exist.
    * Automatically calculates Streak based on consecutive active days.
    */
   updateDailyStats: (updates: Partial<DailyStats>): DailyStats => {
     try {
-      const currentStats = storageService.read<DailyStats>('stats', DEFAULT_STATS);
-
-      // Use the same local date-key format (YYYY-MM-DD) with 02:00 reset
-      const todayKey = storageService.getTodayISO(2);
-
-      // Normalize lastUpdated to a YYYY-MM-DD local key (support legacy ISO)
-      let lastDateStr = '';
-      if (!currentStats.lastUpdated) {
-        lastDateStr = '';
-      } else if (currentStats.lastUpdated.includes('T')) {
-        const d = new Date(currentStats.lastUpdated); // legacy ISO timestamp
-        lastDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      } else {
-        lastDateStr = currentStats.lastUpdated;
-      }
-
-      let streakDays = currentStats.streakDays || 0;
-
-      if (lastDateStr !== todayKey) {
-        // Compare using local midnight dates to get an integer day difference
-        const lastDate = lastDateStr ? new Date(`${lastDateStr}T00:00:00`) : null;
-        const todayDate = new Date(`${todayKey}T00:00:00`);
-        const diffDays = lastDate ? Math.round((todayDate.getTime() - lastDate.getTime()) / (24 * 60 * 60 * 1000)) : Infinity;
-
-        if (diffDays === 1) {
-          // consecutive day
-          streakDays += 1;
-        } else {
-          // broken streak or first run
-          streakDays = 1;
-        }
-      }
+      // Get the current, date-verified stats
+      const currentStats = storageService.getTodaysStats();
 
       const newStats = {
         ...currentStats,
-        ...updates,
-        streakDays,
-        // store lastUpdated as the local date-key so comparisons are consistent
-        lastUpdated: todayKey
+        ...updates
       };
 
       storageService.write('stats', newStats);
@@ -395,7 +406,7 @@ export const storageService = {
 
   getAIContext: () => {
     const profile = storageService.read<UserProfile>('profile', { name: 'User', age: '', primaryGoal: '' });
-    const stats = storageService.read<DailyStats>('stats', DEFAULT_STATS);
+    const stats = storageService.getTodaysStats();
     const tasks = storageService.read<Task[]>('tasks', []);
     const gamification = storageService.read<GamificationState>('gamification', { totalXP: 0, unlockedAchievements: [] });
     
